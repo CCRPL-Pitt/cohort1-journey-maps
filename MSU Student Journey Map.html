@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Missouri State University — Student Journey Map</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --maroon: #5C0000;
+    --maroon-mid: #8B1A1A;
+    --maroon-light: #f7eded;
+    --gold: #c8960c;
+    --gold-light: #fdf6e3;
+    --text: #1a1a1a;
+    --text-mid: #4a4a4a;
+    --text-muted: #767676;
+    --border: #e0e0e0;
+    --surface: #ffffff;
+    --bg: #f5f4f2;
+    --c-prelim: #5C0000;
+    --c-fin: #785a00;
+    --c-acad: #154360;
+    --c-adv: #3b1f6b;
+    --c-belong: #5d2e0c;
+    --c-mh: #1a4a1a;
+    --c-career: #6b1a3b;
+    --gap-bg: #fde8e8; --gap-text: #7a1010;
+    --pain-bg: #fff3cd; --pain-text: #7a5400;
+    --open-bg: #dbeafe; --open-text: #1a4480;
+    --ok-bg: #d1fae5; --ok-text: #064e3b;
+    --radius: 8px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.5; min-height: 100vh; }
+  .site-header { background: var(--maroon); color: white; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 52px; position: sticky; top: 0; z-index: 50; gap: 12px; }
+  .site-header-left { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .site-logo { font-size: 14px; font-weight: 600; color: white; white-space: nowrap; }
+  .site-logo span { color: var(--gold); }
+  .header-label { font-size: 11px; color: rgba(255,255,255,0.55); border-left: 1px solid rgba(255,255,255,0.2); padding-left: 10px; white-space: nowrap; }
+  .stage-nav { display: flex; gap: 4px; flex-shrink: 0; }
+  .stage-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); border-radius: 5px; padding: 4px 10px; font-size: 11px; font-weight: 500; cursor: pointer; transition: background 0.15s, color 0.15s; white-space: nowrap; font-family: var(--font); }
+  .stage-btn:hover { background: rgba(255,255,255,0.22); color: white; }
+  .stage-btn.active { background: var(--gold); color: #1a0f00; border-color: var(--gold); }
+  .stage-panel { display: none; padding: 0 0 48px; }
+  .stage-panel.visible { display: block; }
+  .stage-hero { background: var(--maroon); color: white; padding: 20px 20px 16px; border-bottom: 3px solid var(--gold); }
+  .stage-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+  .stage-title { font-size: 20px; font-weight: 600; line-height: 1.2; margin-bottom: 4px; }
+  .stage-subtitle { font-size: 12px; color: rgba(255,255,255,0.65); margin-bottom: 14px; }
+  .data-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .data-chip { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); border-radius: 6px; padding: 5px 10px; text-align: center; min-width: 88px; }
+  .data-chip strong { display: block; font-size: 14px; font-weight: 600; color: var(--gold); line-height: 1.2; }
+  .data-chip span { font-size: 10px; color: rgba(255,255,255,0.7); line-height: 1.3; display: block; }
+  .persona-bar { background: #fff9f0; border-bottom: 1px solid #f0e0c0; padding: 6px 20px; font-size: 10px; color: #7a5400; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .persona-bar strong { font-weight: 700; }
+  .legend-bar { background: white; border-bottom: 1px solid var(--border); padding: 7px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .legend-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .tag { display: inline-flex; align-items: center; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; line-height: 1.4; }
+  .tag-gap   { background: var(--gap-bg);  color: var(--gap-text); }
+  .tag-pain  { background: var(--pain-bg); color: var(--pain-text); }
+  .tag-open  { background: var(--open-bg); color: var(--open-text); }
+  .tag-ok    { background: var(--ok-bg);   color: var(--ok-text); }
+  .map-grid-wrap { overflow-x: auto; padding: 14px 20px 0; }
+  .map-grid { display: grid; min-width: 700px; }
+  .col-header { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 10px; font-weight: 600; color: var(--text-mid); text-align: center; line-height: 1.35; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+  .col-header .col-n { font-size: 16px; font-weight: 700; color: var(--maroon); line-height: 1; }
+  .lane-header-cell { background: transparent; border: none; padding: 8px 0; display: flex; align-items: center; }
+  .lane-header-cell span { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .lane-label { border-radius: 8px; padding: 8px 10px; display: flex; align-items: flex-start; gap: 6px; color: white; font-size: 11px; font-weight: 600; line-height: 1.35; min-height: 64px; align-self: stretch; }
+  .lane-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+  .cell { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; cursor: pointer; transition: border-color 0.12s, box-shadow 0.12s; display: flex; flex-direction: column; gap: 4px; min-height: 64px; align-self: stretch; }
+  .cell:hover { border-color: var(--maroon); box-shadow: 0 0 0 2px rgba(92,0,0,0.1); }
+  .cell.empty { background: var(--bg); border-style: dashed; border-color: #d8d8d8; cursor: default; pointer-events: none; }
+  .cell-milestone { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.35; }
+  .cell-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 2px; }
+  .cell-hint { font-size: 9px; color: var(--text-muted); margin-top: auto; padding-top: 4px; }
+  .gap-summary { margin: 16px 20px 0; background: var(--maroon-light); border: 1px solid #ddc0c0; border-radius: var(--radius); padding: 14px 16px; }
+  .gap-summary-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--maroon); margin-bottom: 10px; }
+  .gap-row { display: grid; grid-template-columns: 160px 1fr; gap: 8px 12px; margin-bottom: 6px; align-items: start; }
+  .gap-lane-label { font-size: 11px; font-weight: 600; color: var(--maroon-mid); }
+  .gap-lane-text { font-size: 11px; color: var(--text-mid); line-height: 1.5; }
+  .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; }
+  .drawer-overlay.open { display: block; }
+  .drawer { position: fixed; right: -480px; top: 0; bottom: 0; width: 440px; max-width: 95vw; background: white; z-index: 201; display: flex; flex-direction: column; transition: right 0.25s cubic-bezier(0.4,0,0.2,1); }
+  .drawer.open { right: 0; }
+  .drawer-header { background: var(--maroon); color: white; padding: 16px 20px; flex-shrink: 0; position: relative; }
+  .drawer-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+  .drawer-title { font-size: 15px; font-weight: 600; line-height: 1.3; padding-right: 32px; }
+  .drawer-close { position: absolute; top: 14px; right: 16px; background: rgba(255,255,255,0.15); border: none; color: white; width: 28px; height: 28px; border-radius: 50%; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: var(--font); }
+  .drawer-close:hover { background: rgba(255,255,255,0.25); }
+  .drawer-body { padding: 18px; overflow-y: auto; flex: 1; }
+  .drawer-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 16px; }
+  .d-section { margin-bottom: 16px; }
+  .d-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+  .d-section-text { font-size: 12px; line-height: 1.65; color: var(--text-mid); }
+
+  /* ── LIVING DOCUMENT LAYER ── */
+  .ld-panel { background: #f8f8f6; border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
+  .ld-panel-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .ld-panel-title::before { content: '◎'; color: var(--gold); }
+  .ld-row { margin-bottom: 10px; }
+  .ld-label { font-size: 10px; font-weight: 600; color: var(--text-mid); margin-bottom: 4px; display: block; }
+  .ld-status-group { display: flex; gap: 4px; flex-wrap: wrap; }
+  .ld-status-btn { font-size: 10px; font-weight: 600; padding: 4px 9px; border-radius: 4px; border: 1px solid var(--border); background: white; cursor: pointer; color: var(--text-mid); font-family: var(--font); transition: all 0.12s; }
+  .ld-status-btn:hover { border-color: var(--maroon); }
+  .ld-status-btn.sel-active    { background: var(--gap-bg);  color: var(--gap-text);  border-color: var(--gap-text); }
+  .ld-status-btn.sel-progress  { background: var(--pain-bg); color: var(--pain-text); border-color: var(--pain-text); }
+  .ld-status-btn.sel-addressed { background: var(--ok-bg);   color: var(--ok-text);   border-color: var(--ok-text); }
+  .ld-status-btn.sel-monitoring{ background: var(--open-bg); color: var(--open-text); border-color: var(--open-text); }
+  .ld-date { font-size: 12px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 4px; font-family: var(--font); color: var(--text); width: 100%; background: white; }
+  .ld-notes { font-size: 12px; padding: 7px 9px; border: 1px solid var(--border); border-radius: 4px; font-family: var(--font); color: var(--text); width: 100%; min-height: 72px; resize: vertical; line-height: 1.5; background: white; }
+  .ld-date:focus, .ld-notes:focus { outline: none; border-color: var(--maroon); }
+  .ld-save-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .ld-save-btn { font-size: 11px; font-weight: 600; padding: 5px 14px; border-radius: 5px; border: none; background: var(--maroon); color: white; cursor: pointer; font-family: var(--font); }
+  .ld-save-btn:hover { background: #7a1a1a; }
+  .ld-saved-msg { font-size: 10px; color: var(--ok-text); font-weight: 600; opacity: 0; transition: opacity 0.3s; }
+  .ld-saved-msg.show { opacity: 1; }
+  .cell-status-badge { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-top: 3px; display: inline-block; letter-spacing: 0.03em; }
+  .sb-active     { background: var(--gap-bg);  color: var(--gap-text); }
+  .sb-progress   { background: var(--pain-bg); color: var(--pain-text); }
+  .sb-addressed  { background: var(--ok-bg);   color: var(--ok-text); }
+  .sb-monitoring { background: var(--open-bg); color: var(--open-text); }
+  .export-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); border-radius: 5px; padding: 4px 10px; font-size: 11px; font-weight: 500; cursor: pointer; font-family: var(--font); white-space: nowrap; }
+  .export-btn:hover { background: rgba(255,255,255,0.22); color: white; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-left">
+    <div class="site-logo">Missouri State <span>University</span></div>
+    <div class="header-label">Student Journey Map · CCRPL · 2026</div>
+  </div>
+  <nav class="stage-nav">
+    <button class="stage-btn active" onclick="showStage(1)" id="btn-1">Stage 1</button>
+    <button class="stage-btn" onclick="showStage(2)" id="btn-2">Stage 2</button>
+    <button class="stage-btn" onclick="showStage(3)" id="btn-3">Stage 3</button>
+    <button class="stage-btn" onclick="showStage(4)" id="btn-4">Stage 4</button>
+    <button class="stage-btn" onclick="showStage(5)" id="btn-5">Stage 5</button>
+    <button class="export-btn" onclick="exportStatus()" title="Export all milestone notes and statuses as a text summary">↓ Export Status</button>
+  </nav>
+</header>
+
+<!-- STAGE 1 -->
+<section class="stage-panel visible" id="stage-1">
+  <div class="stage-hero">
+    <div class="stage-eyebrow">Stage 1 of 5</div>
+    <div class="stage-title">Admission → First Day of Classes</div>
+    <div class="stage-subtitle">From acceptance through SOAR, account activation, and the first day of Year 1</div>
+    <div class="data-chips">
+      <div class="data-chip"><strong>76.5%</strong><span>1st-Yr Retention (Natl avg 87%)</span></div>
+      <div class="data-chip"><strong>62%</strong><span>Black Student Retention</span></div>
+      <div class="data-chip"><strong>68.5%</strong><span>Pell-Eligible Retention</span></div>
+      <div class="data-chip"><strong>27%</strong><span>First-Gen Incoming</span></div>
+      <div class="data-chip"><strong>1,300</strong><span>New Transfer Students Fall '25</span></div>
+      <div class="data-chip"><strong>21 pts</strong><span>4-Yr Completion Gap, Black Students</span></div>
+    </div>
+  </div>
+  <div class="persona-bar">
+    <strong>Key personas in this stage:</strong>
+    <span>👤 Trey — first-gen, low-income, caregiving responsibilities</span>
+    <span>👤 Logan — first-gen, commuter, limited navigational support</span>
+    <span>👤 Trisha — transfer student, financial aid anxiety, online learner</span>
+  </div>
+  <div class="legend-bar">
+    <span class="legend-label">Key</span>
+    <span class="tag tag-gap">Documented gap</span>
+    <span class="tag tag-pain">Pain point</span>
+    <span class="tag tag-open">Still open</span>
+    <span class="tag tag-ok">Confirmed</span>
+    <span style="font-size:10px;color:var(--text-muted);margin-left:6px;">Click any milestone for detail</span>
+  </div>
+  <div class="map-grid-wrap">
+    <div class="map-grid" style="grid-template-columns: 140px repeat(5, 1fr); gap: 5px;">
+      <div class="lane-header-cell"><span>Swim Lane</span></div>
+      <div class="col-header"><div class="col-n">M1</div>Accept Admission</div>
+      <div class="col-header"><div class="col-n">M2</div>Activate Account &amp; BearPass</div>
+      <div class="col-header"><div class="col-n">M3</div>Complete SOAR</div>
+      <div class="col-header"><div class="col-n">M4</div>URSA &amp; Welcome Week</div>
+      <div class="col-header"><div class="col-n">M5</div>First Day of Classes</div>
+
+      <div class="lane-label" style="background:var(--c-prelim)"><span class="lane-icon">🏁</span>Preliminary Milestones &amp; Orientation</div>
+      <div class="cell" onclick="openDetail('s1_m1_prelim')"><div class="cell-milestone">Accept admission, access portal checklist, receive welcome package</div><div class="cell-tags"><span class="tag tag-pain">Pain</span><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s1_m2_prelim')"><div class="cell-milestone">Activate MSU account, set up BearPass, configure email</div><div class="cell-tags"><span class="tag tag-pain">Pain</span><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s1_m3_prelim')"><div class="cell-milestone">Register for SOAR, attend 2-day orientation, register for fall classes</div><div class="cell-tags"><span class="tag tag-pain">Pain</span><span class="tag tag-open">Open</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s1_m4_prelim')"><div class="cell-milestone">URSA (optional, fee-based, waivers available); Welcome Week; New Student Convocation</div><div class="cell-tags"><span class="tag tag-ok">Confirmed</span><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s1_m5_prelim')"><div class="cell-milestone">Commuter / local students lack equivalent belonging touchpoint at Welcome Week</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+
+      <div class="lane-label" style="background:var(--c-fin)"><span class="lane-icon">💰</span>Financial Access</div>
+      <div class="cell" onclick="openDetail('s1_m1_fin')"><div class="cell-milestone">Complete FAFSA (priority Dec 1), receive aid award letter, review scholarship offer</div><div class="cell-tags"><span class="tag tag-pain">Pain</span><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s1_m3_fin')"><div class="cell-milestone">Pay enrollment fee; SOAR fee replacing enrollment fee Summer 2026</div><div class="cell-tags"><span class="tag tag-ok">Confirmed</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s1_m4_fin')"><div class="cell-milestone">Housing application open in Oct; Board approves rates May–June — students commit without knowing cost</div><div class="cell-tags"><span class="tag tag-pain">Pain</span><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-acad)"><span class="lane-icon">📚</span>Academic Foundation</div>
+      <div class="cell" onclick="openDetail('s1_m1_acad')"><div class="cell-milestone">Submit final HS transcripts, dual enrollment records, AP / IB / CLEP / SoBL scores</div><div class="cell-tags"><span class="tag tag-pain">Pain</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s1_m3_acad')"><div class="cell-milestone">Math &amp; English placement testing at SOAR (optional; same-day results now available)</div><div class="cell-tags"><span class="tag tag-ok">Fixed</span><span class="tag tag-open">Open</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-adv)"><span class="lane-icon">🗺</span>Advising &amp; Planning</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s1_m3_adv')"><div class="cell-milestone">First advising interaction: SOAR advisor (often not the permanent advisor)</div><div class="cell-tags"><span class="tag tag-gap">Gap</span><span class="tag tag-pain">Pain</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s1_m4_adv')"><div class="cell-milestone">Indicate intended major or undeclared; SOAR groups tailored for undeclared students</div><div class="cell-tags"><span class="tag tag-ok">Confirmed</span><span class="tag tag-open">Open</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-belong)"><span class="lane-icon">🤝</span>Belonging &amp; Engagement</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s1_m3_belong')"><div class="cell-milestone">BEARS Lead cohort outreach (first-gen &amp; low-income); SOAR commuter session</div><div class="cell-tags"><span class="tag tag-gap">Gap</span><span class="tag tag-open">Open</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s1_m4_belong')"><div class="cell-milestone">Move-in &amp; residential community orientation; LLC promotion</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s1_m5_belong')"><div class="cell-milestone">Roommate dependency risk; DEI climate concerns affect belonging for LGBTQ+ and students of color</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+
+      <div class="lane-label" style="background:var(--c-mh)"><span class="lane-icon">🌿</span>(Mental) Health &amp; Basic Needs</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s1_m3_mh')"><div class="cell-milestone">CC tables every SOAR; Welltrack &amp; Togetherall active on email creation; no wait times</div><div class="cell-tags"><span class="tag tag-ok">Confirmed</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s1_m4_mh')"><div class="cell-milestone">Bear Pantry tables at SOAR; in Family Handbook; BIT is currently reactive only</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s1_m5_mh')"><div class="cell-milestone">Gap is not CC presence — it is whether most-at-risk students choose to utilize available touchpoints</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+
+      <div class="lane-label" style="background:var(--c-career)"><span class="lane-icon">🎯</span>Career &amp; Future Self</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s1_m3_career')"><div class="cell-milestone">Career Center tables SOAR expo; two optional 30-min breakout sessions</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s1_m5_career')"><div class="cell-milestone">Students added to Handshake on first day of class; activation rate ~42%</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+    </div>
+  </div>
+  <div class="gap-summary">
+    <div class="gap-summary-title">⚑ Stage 1 Gap Summary</div>
+    <div class="gap-row"><div class="gap-lane-label">Preliminary Milestones</div><div class="gap-lane-text">Departments no longer receive the Admit List. Silent email transition (personal → MSU) causes missed comms. SOAR date/retention correlation documented but formally unconfirmed.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Financial Access</div><div class="gap-lane-text">Scholarship page lacks current info. Housing rates unavailable when applications open. Missouri Access Grant deadline (Feb 1) poorly communicated. Financial literacy scaffolding absent alongside award letter.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Academic Foundation</div><div class="gap-lane-text">Math placement policy unclear across departments. Dual-credit students may face locked or duplicate account barriers. SoBL added as credit-conferring assessment.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Advising &amp; Planning</div><div class="gap-lane-text">SOAR advisor ≠ permanent advisor. No centralized scheduling. First advising interaction is one-time, high-pressure, no relationship context.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Belonging &amp; Engagement</div><div class="gap-lane-text">LLC promotion inconsistent. Commuter students have SOAR session but no equivalent Welcome Week touchpoint. Roommate dependency risk unmanaged.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Health &amp; Basic Needs</div><div class="gap-lane-text">CC is proactively present — documentation corrected. Real gap: whether Black, LGBTQ+, and first-gen students are choosing to utilize available touchpoints.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Career &amp; Future Self</div><div class="gap-lane-text">Career presence at SOAR is optional. Handshake enrollment on first day of class; ~42% activation rate — majority of students remain passive.</div></div>
+  </div>
+</section>
+
+<!-- STAGE 2 -->
+<section class="stage-panel" id="stage-2">
+  <div class="stage-hero">
+    <div class="stage-eyebrow">Stage 2 of 5</div>
+    <div class="stage-title">Year One Enrollment</div>
+    <div class="stage-subtitle">First Day of Year 1 through end of the academic year</div>
+    <div class="data-chips">
+      <div class="data-chip"><strong>30 hrs</strong><span>Credit target, Year 1, for scholarship renewal</span></div>
+      <div class="data-chip"><strong>76.5%</strong><span>Overall retention vs. 87% national avg</span></div>
+      <div class="data-chip"><strong>27%</strong><span>First-gen students in incoming class</span></div>
+      <div class="data-chip"><strong>14–15 hrs</strong><span>Typical first-semester credit load</span></div>
+    </div>
+  </div>
+  <div class="persona-bar">
+    <strong>Key personas:</strong>
+    <span>👤 Trey — caregiving, financial pressure, first-time mental health engagement</span>
+    <span>👤 Logan — commuter, weaker belonging anchor</span>
+    <span>👤 Trisha — transfer, financial aid gaps, works 20–25 hrs/week</span>
+  </div>
+  <div class="legend-bar">
+    <span class="legend-label">Key</span>
+    <span class="tag tag-gap">Documented gap</span>
+    <span class="tag tag-pain">Pain point</span>
+    <span class="tag tag-open">Still open</span>
+    <span class="tag tag-ok">Confirmed</span>
+    <span style="font-size:10px;color:var(--text-muted);margin-left:6px;">Click any milestone for detail</span>
+  </div>
+  <div class="map-grid-wrap">
+    <div class="map-grid" style="grid-template-columns: 140px repeat(4, 1fr); gap: 5px;">
+      <div class="lane-header-cell"><span>Swim Lane</span></div>
+      <div class="col-header"><div class="col-n">M1</div>Refile FAFSA &amp; Aid Renewal</div>
+      <div class="col-header"><div class="col-n">M2</div>GEP 101 &amp; First Semester</div>
+      <div class="col-header"><div class="col-n">M3</div>Mid-Year Academic Check-In</div>
+      <div class="col-header"><div class="col-n">M4</div>End of Year 1: Re-enrollment</div>
+
+      <div class="lane-label" style="background:var(--c-fin)"><span class="lane-icon">💰</span>Financial Access</div>
+      <div class="cell" onclick="openDetail('s2_m1_fin')"><div class="cell-milestone">Refile FAFSA (priority Oct 1); understand aid renewal criteria (30 credits, GPA)</div><div class="cell-tags"><span class="tag tag-gap">Gap</span><span class="tag tag-pain">Pain</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s2_m2_fin')"><div class="cell-milestone">Pay semester bill; set up payment plan; billing holds can block next-semester registration</div><div class="cell-tags"><span class="tag tag-gap">Gap</span><span class="tag tag-pain">Pain</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-acad)"><span class="lane-icon">📚</span>Academic Foundation</div>
+      <div class="cell" onclick="openDetail('s2_m1_acad')"><div class="cell-milestone">GEP 101 (2 cr, required): first-year foundations, 1:1 with faculty, 4-year plan in Degree Works</div><div class="cell-tags"><span class="tag tag-gap">Gap</span><span class="tag tag-pain">Pain</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s2_m2_acad')"><div class="cell-milestone">Majors Fair; optional IDS 120 (exploring majors &amp; careers); Brightspace LMS friction</div><div class="cell-tags"><span class="tag tag-pain">Pain</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s2_m3_acad')"><div class="cell-milestone">Academic advisor appointments; Boomer Bot / EdSights early alert check-ins</div><div class="cell-tags"><span class="tag tag-gap">Gap</span><span class="tag tag-open">Open</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-adv)"><span class="lane-icon">🗺</span>Advising &amp; Planning</div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s2_m2_adv')"><div class="cell-milestone">Choose major or continue structured exploration; Career Center for undeclared students</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s2_m3_adv')"><div class="cell-milestone">Advising appointment for spring registration; Boomer career timeline checklist (not formally integrated)</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-belong)"><span class="lane-icon">🤝</span>Belonging &amp; Engagement</div>
+      <div class="cell" onclick="openDetail('s2_m1_belong')"><div class="cell-milestone">Welcome Week events; join student org; House Calls (one-time, residential only)</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s2_m2_belong')"><div class="cell-milestone">Pursue on-campus employment; work-study changes reducing access for low-income students</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-mh)"><span class="lane-icon">🌿</span>(Mental) Health &amp; Basic Needs</div>
+      <div class="cell" onclick="openDetail('s2_m1_mh')"><div class="cell-milestone">Access CC when needed; Fresh Check Day, screenings; CC presents at GEP 101</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s2_m2_mh')"><div class="cell-milestone">Bear Pantry &amp; Clothing Closet ongoing access; BIT referral pathway</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s2_m3_mh')"><div class="cell-milestone">Midterm / fall break / drop period convergence: known stress spike, no proactive institutional response</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-career)"><span class="lane-icon">🎯</span>Career &amp; Future Self</div>
+      <div class="cell" onclick="openDetail('s2_m1_career')"><div class="cell-milestone">Claim Handshake account; Career Center embedded in GEP 101 (not required by curriculum)</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+    </div>
+  </div>
+  <div class="gap-summary">
+    <div class="gap-summary-title">⚑ Stage 2 Gap Summary</div>
+    <div class="gap-row"><div class="gap-lane-label">Financial Access</div><div class="gap-lane-text">30-credit scholarship renewal requirement in structural tension with 14–15 credit first-semester loads. Financial holds and billing complexity minimally documented, with no formal escalation pathway.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Academic Foundation</div><div class="gap-lane-text">GEP 101 is 2 credit hours (corrected). IDS 120 is optional. No notification if students drop below 12 credits. Career content in GEP 101 not required — uneven exposure across sections.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Advising &amp; Planning</div><div class="gap-lane-text">Decentralized advising continues. ATLAS launching but not at full coverage. Boomer career timeline checklist exists but not formally integrated into advising.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Belonging &amp; Engagement</div><div class="gap-lane-text">Commuter students face structural belonging disadvantage. House Calls is one-time, residential-only. Work-study eligibility changes limit on-campus employment access.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Health &amp; Basic Needs</div><div class="gap-lane-text">CC proactive (confirmed). Real gap: students who most need support not choosing to utilize touchpoints. Midterms + fall break + drop period coincide — known crisis convergence point, no formal response protocol.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Career &amp; Future Self</div><div class="gap-lane-text">Career Center in GEP 101 not required. Handshake activation ~42%. Boomer career timeline checklist not formally integrated into advising appointments.</div></div>
+  </div>
+</section>
+
+<!-- STAGE 3 -->
+<section class="stage-panel" id="stage-3">
+  <div class="stage-hero">
+    <div class="stage-eyebrow">Stage 3 of 5</div>
+    <div class="stage-title">Year Two Enrollment</div>
+    <div class="stage-subtitle">First Day of Year 2 through end of year — approaching the advising cliff</div>
+    <div class="data-chips">
+      <div class="data-chip"><strong>75 hrs</strong><span>Advising required through (+ 3 advisor releases)</span></div>
+      <div class="data-chip"><strong>1,300</strong><span>Transfer students Fall 2025</span></div>
+      <div class="data-chip"><strong>&lt;59%</strong><span>Transfer 3-yr graduation rate (past decade)</span></div>
+    </div>
+  </div>
+  <div class="persona-bar">
+    <strong>Key personas:</strong>
+    <span>👤 Trisha — transfer student entering at this stage; financial aid gaps; social isolation</span>
+  </div>
+  <div class="legend-bar">
+    <span class="legend-label">Key</span>
+    <span class="tag tag-gap">Documented gap</span>
+    <span class="tag tag-pain">Pain point</span>
+    <span class="tag tag-open">Still open</span>
+    <span class="tag tag-ok">Confirmed</span>
+    <span style="font-size:10px;color:var(--text-muted);margin-left:6px;">Click any milestone for detail</span>
+  </div>
+  <div class="map-grid-wrap">
+    <div class="map-grid" style="grid-template-columns: 140px repeat(4, 1fr); gap: 5px;">
+      <div class="lane-header-cell"><span>Swim Lane</span></div>
+      <div class="col-header"><div class="col-n">M1</div>Transfer Orientation &amp; Aid Reset</div>
+      <div class="col-header"><div class="col-n">M2</div>Major Transition &amp; Upper-Division Entry</div>
+      <div class="col-header"><div class="col-n">M3</div>Approaching 75-Hr Advising Cliff</div>
+      <div class="col-header"><div class="col-n">M4</div>Summer Planning &amp; Re-enrollment</div>
+
+      <div class="lane-label" style="background:var(--c-fin)"><span class="lane-icon">💰</span>Financial Access</div>
+      <div class="cell" onclick="openDetail('s3_m1_fin')"><div class="cell-milestone">Navigate aid gaps from prior institution; emergency financial aid (student-initiated only)</div><div class="cell-tags"><span class="tag tag-gap">Gap</span><span class="tag tag-open">Open</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s3_m2_fin')"><div class="cell-milestone">Students who missed 30-credit renewal in Year 1 face reduced aid — no proactive outreach</div><div class="cell-tags"><span class="tag tag-gap">Gap</span><span class="tag tag-pain">Pain</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-acad)"><span class="lane-icon">📚</span>Academic Foundation</div>
+      <div class="cell" onclick="openDetail('s3_m1_acad')"><div class="cell-milestone">Transition from pre-major to major: GPA, course, and portfolio requirements</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s3_m2_acad')"><div class="cell-milestone">Required advising through 75 credit hours AND 3 advisor releases — whichever comes later</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-adv)"><span class="lane-icon">🗺</span>Advising &amp; Planning</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s3_m3_adv')"><div class="cell-milestone">No formal post-75-hour advising touchpoint; COB credit-hour reporting model is possible template</div><div class="cell-tags"><span class="tag tag-gap">Gap</span><span class="tag tag-open">Open</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-belong)"><span class="lane-icon">🤝</span>Belonging &amp; Engagement</div>
+      <div class="cell" onclick="openDetail('s3_m1_belong')"><div class="cell-milestone">Transfer orientation (new, Jan 2026, still developing); new transfer handbook</div><div class="cell-tags"><span class="tag tag-gap">Gap</span><span class="tag tag-pain">Pain</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s3_m2_belong')"><div class="cell-milestone">Pursue org leadership, honor societies — ~10% of sophomore org members hold exec board role (confirmed)</div><div class="cell-tags"><span class="tag tag-ok">Confirmed</span><span class="tag tag-open">Open</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-career)"><span class="lane-icon">🎯</span>Career &amp; Future Self</div>
+      <div class="cell" onclick="openDetail('s3_m1_career')"><div class="cell-milestone">Refine résumé, create LinkedIn, practice interview skills; Big Interview tool available</div><div class="cell-tags"><span class="tag tag-pain">Pain</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s3_m2_career')"><div class="cell-milestone">Search for summer internship on Handshake; decentralized navigation across programs</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+    </div>
+  </div>
+  <div class="gap-summary">
+    <div class="gap-summary-title">⚑ Stage 3 Gap Summary</div>
+    <div class="gap-row"><div class="gap-lane-label">Financial Access</div><div class="gap-lane-text">Financial Aid office confirmed: no staffing capacity for proactive individualized advising. Transfer students face aid gap surprises. Emergency financial aid not formally mapped for transfers.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Academic Foundation</div><div class="gap-lane-text">Major admission requirements vary widely. Students approaching 75-hr cliff about to lose required advising. Required advising = 75 hours AND 3 advisor releases (corrected).</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Advising &amp; Planning</div><div class="gap-lane-text">Required advising ends at 75 hrs + 3 releases. No documented post-75-hour model. COB credit-hour reporting model is potential institutional template.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Belonging &amp; Engagement</div><div class="gap-lane-text">Transfer orientation first held Jan 2026 — not yet robust. Transfer support concentrated in a single staff role serving ~half the student body (Focus Group, April 2026). Honor society leadership tracking confirmed: ~10% of sophomore org members hold an executive board role (318 of 3,189). Whether honor society invitations reach first-gen and Pell-eligible students who qualify remains open.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Career &amp; Future Self</div><div class="gap-lane-text">Résumé, LinkedIn, internship search mapped here — largely student-driven. Unpaid internship trade-off vs. paid employment affects low-income students disproportionately.</div></div>
+  </div>
+</section>
+
+<!-- STAGE 4 -->
+<section class="stage-panel" id="stage-4">
+  <div class="stage-hero">
+    <div class="stage-eyebrow">Stage 4 of 5</div>
+    <div class="stage-title">Year Three Enrollment</div>
+    <div class="stage-subtitle">First Day of Year 3 through end of year — required advising ends for most students</div>
+    <div class="data-chips">
+      <div class="data-chip"><strong>75 hrs</strong><span>Advising ends — most students cross this in Stage 4</span></div>
+      <div class="data-chip"><strong>Yr 1 = Yr 3</strong><span>For transfer students with associate's degree</span></div>
+    </div>
+  </div>
+  <div class="persona-bar">
+    <strong>Key personas:</strong>
+    <span>👤 Trey — navigating without advising safety net; caregiving continues</span>
+    <span>👤 Trisha — may have hit advising cliff already in Year 1 at MSU</span>
+  </div>
+  <div class="legend-bar">
+    <span class="legend-label">Key</span>
+    <span class="tag tag-gap">Documented gap</span>
+    <span class="tag tag-pain">Pain point</span>
+    <span class="tag tag-open">Still open</span>
+    <span class="tag tag-ok">Confirmed</span>
+    <span style="font-size:10px;color:var(--text-muted);margin-left:6px;">Click any milestone for detail</span>
+  </div>
+  <div class="map-grid-wrap">
+    <div class="map-grid" style="grid-template-columns: 140px repeat(4, 1fr); gap: 5px;">
+      <div class="lane-header-cell"><span>Swim Lane</span></div>
+      <div class="col-header"><div class="col-n">M1</div>Aid Renewal &amp; Financial Planning</div>
+      <div class="col-header"><div class="col-n">M2</div>Upper-Division Coursework</div>
+      <div class="col-header"><div class="col-n">M3</div>Post-75-Hr Self-Navigation</div>
+      <div class="col-header"><div class="col-n">M4</div>Career Fairs &amp; Summer Internship</div>
+
+      <div class="lane-label" style="background:var(--c-fin)"><span class="lane-icon">💰</span>Financial Access</div>
+      <div class="cell" onclick="openDetail('s4_m1_fin')"><div class="cell-milestone">Refile FAFSA; scholarships may be exhausted; transfer students approaching lifetime aid limits</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-acad)"><span class="lane-icon">📚</span>Academic Foundation</div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s4_m2_acad')"><div class="cell-milestone">Upper-division major courses; no alert if student drops below 12 credits; modality confusion persists</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s4_m3_acad')"><div class="cell-milestone">Post-75-hr: students self-track via Degree Works; no institutional graduation readiness alert</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s4_m4_acad')"><div class="cell-milestone">Education abroad opportunity; Education Abroad Voucher ($1,000) eliminated</div><div class="cell-tags"><span class="tag tag-pain">Pain</span><span class="tag tag-ok">Confirmed</span></div><div class="cell-hint">↗ Detail</div></div>
+
+      <div class="lane-label" style="background:var(--c-adv)"><span class="lane-icon">🗺</span>Advising &amp; Planning</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s4_m3_adv')"><div class="cell-milestone">Required advising has ended; no formal touchpoint between 75 and 120 credit hours</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-belong)"><span class="lane-icon">🤝</span>Belonging &amp; Engagement</div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s4_m2_belong')"><div class="cell-milestone">Leadership roles, on-campus research; Boomer Bot isolation checks confirmed; no recognition for non-campus leadership (confirmed gap)</div><div class="cell-tags"><span class="tag tag-ok">Confirmed</span><span class="tag tag-open">Open</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-career)"><span class="lane-icon">🎯</span>Career &amp; Future Self</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s4_m4_career')"><div class="cell-milestone">Attend career fairs; pursue summer internship; consider grad school entrance exams (GRE, LSAT, MCAT)</div><div class="cell-tags"><span class="tag tag-gap">Gap</span><span class="tag tag-open">Open</span></div><div class="cell-hint">↗ Detail</div></div>
+    </div>
+  </div>
+  <div class="gap-summary">
+    <div class="gap-summary-title">⚑ Stage 4 Gap Summary</div>
+    <div class="gap-row"><div class="gap-lane-label">Financial Access</div><div class="gap-lane-text">Scholarships may be exhausted. Transfer students approaching lifetime aid limits. Education Abroad Voucher ($1,000) eliminated — material reduction in access.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Academic Foundation</div><div class="gap-lane-text">Upper-division major coursework. No alert if students fall off track. Double-major students may lack advising relationship with second major's department.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Advising &amp; Planning</div><div class="gap-lane-text">Most consequential gap in the entire map: required advising ends at 75 hrs. Students entirely self-directed for final 45 credit hours. No graduation readiness check-in mechanism.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Belonging &amp; Engagement</div><div class="gap-lane-text">Students expected to hold leadership roles. Those who never built community now in small major-specific cohorts. Boomer Bot checks on students regardless of credit hours for engagement and isolation — a proactive touchpoint exists but is bot-based, not human-to-human (confirmed). No institutional recognition exists for non-campus forms of leadership such as caregiving, community work, or off-campus employment (confirmed gap, June 2026).</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Career &amp; Future Self</div><div class="gap-lane-text">Career fairs and internships increasingly urgent. Graduate school pathway entirely self-initiated for most. High-achieving first-gen students unlikely to consider grad school without an institutional prompt.</div></div>
+  </div>
+</section>
+
+<!-- STAGE 5 -->
+<section class="stage-panel" id="stage-5">
+  <div class="stage-hero">
+    <div class="stage-eyebrow">Stage 5 of 5</div>
+    <div class="stage-title">Year Four to Graduation</div>
+    <div class="stage-subtitle">Final year(s) of enrollment through degree completion and commencement</div>
+    <div class="data-chips">
+      <div class="data-chip"><strong>Yr 4, 5, or 6</strong><span>When graduation happens — map extends as needed</span></div>
+      <div class="data-chip"><strong>16.4 pts</strong><span>4-yr completion gap, first-gen students</span></div>
+      <div class="data-chip"><strong>21 pts</strong><span>4-yr completion gap, Black students</span></div>
+      <div class="data-chip"><strong>102 hrs</strong><span>University exit exam trigger</span></div>
+    </div>
+  </div>
+  <div class="persona-bar">
+    <strong>Key personas:</strong>
+    <span>👤 Trey — may be on Year 5 or 6 timeline; financial aid near expiry</span>
+    <span>👤 Trisha — graduation audit may reveal missing requirements; financial hold risk</span>
+  </div>
+  <div class="legend-bar">
+    <span class="legend-label">Key</span>
+    <span class="tag tag-gap">Documented gap</span>
+    <span class="tag tag-pain">Pain point</span>
+    <span class="tag tag-open">Still open</span>
+    <span class="tag tag-ok">Confirmed</span>
+    <span style="font-size:10px;color:var(--text-muted);margin-left:6px;">Click any milestone for detail</span>
+  </div>
+  <div class="map-grid-wrap">
+    <div class="map-grid" style="grid-template-columns: 140px repeat(4, 1fr); gap: 5px;">
+      <div class="lane-header-cell"><span>Swim Lane</span></div>
+      <div class="col-header"><div class="col-n">M1</div>Final Aid Renewal &amp; Billing</div>
+      <div class="col-header"><div class="col-n">M2</div>102-Hr Exit Exam &amp; Degree Audit</div>
+      <div class="col-header"><div class="col-n">M3</div>Graduation Application &amp; Clearance</div>
+      <div class="col-header"><div class="col-n">M4</div>Commencement &amp; Career Launch</div>
+
+      <div class="lane-label" style="background:var(--c-fin)"><span class="lane-icon">💰</span>Financial Access</div>
+      <div class="cell" onclick="openDetail('s5_m1_fin')"><div class="cell-milestone">Final FAFSA renewal; aid near expiry for Year 5 / 6 students; financial hold can block graduation clearance</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-acad)"><span class="lane-icon">📚</span>Academic Foundation &amp; Graduation</div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s5_m2_acad')"><div class="cell-milestone">University exit exam at 102 credit hours (institutional data collection only — not a student support tool)</div><div class="cell-tags"><span class="tag tag-open">Open</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s5_m3_acad')"><div class="cell-milestone">Graduation check &amp; degree audit: student-initiated; Registrar issues audit after formal declaration</div><div class="cell-tags"><span class="tag tag-gap">Gap</span><span class="tag tag-open">Open</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+
+      <div class="lane-label" style="background:var(--c-belong)"><span class="lane-icon">🤝</span>Belonging &amp; Engagement</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s5_m4_belong')"><div class="cell-milestone">Graduation fair; commencement; Brightspace community confirmed; individual attendance tracking gap confirmed</div><div class="cell-tags"><span class="tag tag-ok">Confirmed</span><span class="tag tag-open">Open</span></div><div class="cell-hint">↗ Detail</div></div>
+
+      <div class="lane-label" style="background:var(--c-mh)"><span class="lane-icon">🌿</span>(Mental) Health &amp; Basic Needs</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s5_m3_mh')"><div class="cell-milestone">CC "What's Next?" support for graduating seniors; identity transition sessions available</div><div class="cell-tags"><span class="tag tag-ok">Confirmed</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s5_m4_mh')"><div class="cell-milestone">Abrupt loss of campus wellness access at graduation; community mental health waitlists are a barrier</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+
+      <div class="lane-label" style="background:var(--c-career)"><span class="lane-icon">🎯</span>Career &amp; Future Self</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s5_m3_career')"><div class="cell-milestone">Job search, career fairs, updated résumé; students who disengaged from career services face steepest climb</div><div class="cell-tags"><span class="tag tag-gap">Gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s5_m4_career')"><div class="cell-milestone">Graduate Outcomes Survey via Handshake: ~22% response rate; non-response by demographic unanalyzed</div><div class="cell-tags"><span class="tag tag-open">Open</span></div><div class="cell-hint">↗ Detail</div></div>
+    </div>
+  </div>
+  <div class="gap-summary">
+    <div class="gap-summary-title">⚑ Stage 5 Gap Summary</div>
+    <div class="gap-row"><div class="gap-lane-label">Financial Access</div><div class="gap-lane-text">Students beyond Year 4 may face reduced or eliminated aid eligibility. Financial holds can block graduation clearance even for academically ready students.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Academic Foundation</div><div class="gap-lane-text">Post-75-hr advising gap lands here: some students discover missing requirements only at graduation check — too late without adding semesters. Exit exam at 102 hrs is data collection only, not student support.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Belonging &amp; Engagement</div><div class="gap-lane-text">Commencement and transition. Commencement info communicated via graduation application and a dedicated Brightspace community (confirmed). Participation tracked at aggregate level only — no individual-level follow-up for students who do not attend (confirmed gap). Culturally specific graduation celebrations not documented. Students who never found belonging remain invisible at completion.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Health &amp; Basic Needs</div><div class="gap-lane-text">CC "What's Next?" support confirmed. Abrupt loss of campus wellness resources at graduation; community mental health waitlists limit continuity of care.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Career &amp; Future Self</div><div class="gap-lane-text">Graduate Outcomes Survey: ~22% response rate; demographic non-response unanalyzed — data blind spot for first-gen, Black, and Pell-eligible graduates at precisely the moment the institution most needs visibility.</div></div>
+  </div>
+</section>
+
+<!-- DRAWER -->
+<div class="drawer-overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-eyebrow" id="d-eyebrow">Detail</div>
+    <div class="drawer-title" id="d-title">Loading…</div>
+    <button class="drawer-close" onclick="closeDrawer()" aria-label="Close">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-tags" id="d-tags"></div>
+
+    <!-- LIVING DOCUMENT PANEL -->
+    <div class="ld-panel">
+      <div class="ld-panel-title">Continuous Improvement Tracking</div>
+      <div class="ld-row">
+        <span class="ld-label">Status</span>
+        <div class="ld-status-group">
+          <button class="ld-status-btn" data-val="active"    onclick="setStatus('active')"    id="sb-active">Active Gap</button>
+          <button class="ld-status-btn" data-val="progress"  onclick="setStatus('progress')"  id="sb-progress">In Progress</button>
+          <button class="ld-status-btn" data-val="addressed" onclick="setStatus('addressed')" id="sb-addressed">Addressed</button>
+          <button class="ld-status-btn" data-val="monitoring"onclick="setStatus('monitoring')" id="sb-monitoring">Monitoring</button>
+        </div>
+      </div>
+      <div class="ld-row">
+        <label class="ld-label" for="ld-date-input">Last Reviewed</label>
+        <input type="date" class="ld-date" id="ld-date-input">
+      </div>
+      <div class="ld-row">
+        <label class="ld-label" for="ld-notes-input">Team Notes</label>
+        <textarea class="ld-notes" id="ld-notes-input" placeholder="Add context, updates, owner, next steps…"></textarea>
+      </div>
+      <div class="ld-save-row">
+        <button class="ld-save-btn" onclick="saveMilestone()">Save</button>
+        <span class="ld-saved-msg" id="ld-saved-msg">✓ Saved</span>
+      </div>
+    </div>
+
+    <div class="d-section"><div class="d-section-label">What happens at this milestone</div><div class="d-section-text" id="d-what"></div></div>
+    <div class="d-section"><div class="d-section-label">Pain points &amp; barriers</div><div class="d-section-text" id="d-pain"></div></div>
+    <div class="d-section"><div class="d-section-label">Equity gaps — Trey, Logan, Trisha &amp; peers</div><div class="d-section-text" id="d-equity"></div></div>
+  </div>
+</div>
+
+<script>
+// ── STAGE SWITCHER ──────────────────────────────────────
+function showStage(n){
+  document.querySelectorAll('.stage-panel').forEach(p=>p.classList.remove('visible'));
+  document.querySelectorAll('.stage-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('stage-'+n).classList.add('visible');
+  document.getElementById('btn-'+n).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── LOCAL STORAGE HELPERS ───────────────────────────────
+const LS_KEY = 'msu_sjm_milestones';
+function loadAll(){ try { return JSON.parse(localStorage.getItem(LS_KEY)||'{}'); } catch(e){ return {}; } }
+function saveAll(data){ try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch(e){} }
+
+// ── CURRENT MILESTONE ───────────────────────────────────
+let currentId = null;
+let currentStatus = null;
+
+function setStatus(val){
+  currentStatus = val;
+  ['active','progress','addressed','monitoring'].forEach(v=>{
+    const b = document.getElementById('sb-'+v);
+    b.className = 'ld-status-btn' + (v===val ? ' sel-'+v : '');
+  });
+}
+
+function saveMilestone(){
+  if(!currentId) return;
+  const all = loadAll();
+  all[currentId] = {
+    status: currentStatus,
+    reviewed: document.getElementById('ld-date-input').value,
+    notes: document.getElementById('ld-notes-input').value.trim()
+  };
+  saveAll(all);
+  updateCellBadge(currentId, currentStatus);
+  const msg = document.getElementById('ld-saved-msg');
+  msg.classList.add('show');
+  setTimeout(()=>msg.classList.remove('show'), 2000);
+}
+
+function loadMilestone(id){
+  const all = loadAll();
+  const saved = all[id] || {};
+  currentStatus = saved.status || null;
+  ['active','progress','addressed','monitoring'].forEach(v=>{
+    const b = document.getElementById('sb-'+v);
+    b.className = 'ld-status-btn' + (v===currentStatus ? ' sel-'+v : '');
+  });
+  document.getElementById('ld-date-input').value = saved.reviewed || '';
+  document.getElementById('ld-notes-input').value = saved.notes || '';
+}
+
+// ── CELL STATUS BADGES ──────────────────────────────────
+const STATUS_LABELS = {active:'Active Gap', progress:'In Progress', addressed:'Addressed', monitoring:'Monitoring'};
+const STATUS_CLASS  = {active:'sb-active', progress:'sb-progress', addressed:'sb-addressed', monitoring:'sb-monitoring'};
+
+function updateCellBadge(id, status){
+  const cells = document.querySelectorAll('[onclick="openDetail(\''+id+'\')"]');
+  cells.forEach(cell=>{
+    let badge = cell.querySelector('.cell-status-badge');
+    if(!status){
+      if(badge) badge.remove();
+      return;
+    }
+    if(!badge){ badge = document.createElement('div'); badge.className='cell-status-badge'; cell.appendChild(badge); }
+    badge.className = 'cell-status-badge ' + (STATUS_CLASS[status]||'');
+    badge.textContent = STATUS_LABELS[status]||status;
+  });
+}
+
+function initBadges(){
+  const all = loadAll();
+  Object.entries(all).forEach(([id, data])=>{
+    if(data.status) updateCellBadge(id, data.status);
+  });
+}
+
+// ── EXPORT ──────────────────────────────────────────────
+function exportStatus(){
+  const all = loadAll();
+  const lines = ['Missouri State University — Student Journey Map', 'Status Export — ' + new Date().toLocaleDateString(), ''];
+  const entries = Object.entries(all).filter(([,v])=>v.status||v.notes||v.reviewed);
+  if(!entries.length){ alert('No milestone tracking data saved yet. Open a milestone, set a status or add notes, and save to begin.'); return; }
+  entries.forEach(([id, v])=>{
+    const d = D[id];
+    lines.push('─────────────────────────────────');
+    lines.push('Milestone: ' + (d ? d.ey + ' — ' + d.ti : id));
+    if(v.status)   lines.push('Status: ' + (STATUS_LABELS[v.status]||v.status));
+    if(v.reviewed) lines.push('Last Reviewed: ' + v.reviewed);
+    if(v.notes)    lines.push('Notes: ' + v.notes);
+    lines.push('');
+  });
+  const blob = new Blob([lines.join('\n')], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'MSU_Journey_Map_Status_' + new Date().toISOString().slice(0,10) + '.txt';
+  a.click();
+}
+
+// ── TAG RENDERING ───────────────────────────────────────
+const T={gap:'<span class="tag tag-gap">Documented gap</span>',pain:'<span class="tag tag-pain">Pain point / barrier</span>',open:'<span class="tag tag-open">Still open</span>',ok:'<span class="tag tag-ok">Answered / confirmed</span>'};
+
+// ── DETAIL DATA ─────────────────────────────────────────
+const D={
+s1_m1_prelim:{ey:"Stage 1 · Preliminary Milestones",ti:"Accept Admission",tg:['pain','gap'],wh:"Student receives admission notification via email and logs into the admitted student portal to view key next steps: housing, SOAR registration, FAFSA, enrollment fee, and scholarship offer. MSU sends a physical welcome package and begins a Slate-based communications campaign. Admissions communicates proactively about SOAR (registration by Feb 1) and FAFSA priority deadline (Dec 1). Admissions maintains restricted lists for first-year students and collaborates with academic partners to develop communications that flow from Slate.",pa:"Departments no longer receive the Admit List, severing a proactive engagement pathway between academic departments and incoming students before arrival. Rolling admissions means students admitted at very different times face inconsistent communication timelines.",eq:"First-gen students from under-resourced high schools may not understand what the portal checklist means or why timing matters — early inaction creates preparation disparities. SOAR date correlates with retention: the later a vulnerable student attends SOAR, the more likely they are not to return for Year 2. Issues with SOAR timing include transportation barriers and parents wanting to attend but not knowing how to pay for it. Students are not consistently told the importance of attending early. Note: Summer 2025 held a dedicated SOAR section for students in a program with Ryan Reed — this worked well but did not recur in Summer 2026."},
+s1_m2_prelim:{ey:"Stage 1 · Preliminary Milestones",ti:"Activate Account & BearPass",tg:['pain','gap'],wh:"Student activates account (created at time of admission), sets up account security and recovery options, submits BearPass photo, and sets up BearPass in their phone's digital wallet.",pa:"Students are confused about their ID number — M# vs. Student ID terminology is inconsistent across departments. Students often lock themselves out of their Missouri State email over the summer, causing cascading problems with all subsequent communications. Admissions communicates via personal email until students arrive, then switches to university email with no notification — students miss critical communications. Dual-credit students who took courses at MSU in high school sometimes end up with two accounts under the same M-number.",eq:"First-gen students and those without tech-savvy family support are more likely to get stuck during account activation with no clear support pathway. The email transition barrier disproportionately affects students juggling summer work or family obligations."},
+s1_m3_prelim:{ey:"Stage 1 · Preliminary Milestones",ti:"Register for and Complete SOAR",tg:['pain','open'],wh:"MSU offers 21 SOAR groups, each with a dedicated advisor. Two-day in-person orientation covers scheduling, dean presentations, 21+ student organizations, and family track. Family receives the Bear Family Newsletter enrollment, Handbook, Calendar, and Folder. Placement testing now same-day results (resolved Spring 2026 by new Testing Center director Lance Renner).",pa:"SOAR is information-dense and overwhelming — financial aid, academic planning, housing, and campus resources all at once. Some students are not assigned a permanent advisor until halfway through the fall semester. Math placement policy is described as 'murky' — whether required, recommended, or optional depends on the student's profile.",eq:"The later a student attends SOAR (particularly first-gen, low-income, and Black students), the more likely they are not to return for Year 2 — this correlation is documented but formally unconfirmed. SOAR's one-size-fits-all design assumes prior knowledge of how college works, which does not hold for first-generation students."},
+s1_m4_prelim:{ey:"Stage 1 · Preliminary Milestones",ti:"URSA & Welcome Week / Convocation",tg:['ok','gap'],wh:"URSA is a year-round program for ~250 students per cohort. Fee waivers available for Pell-eligible students, those who received free/reduced lunch, students with foster care experience, and others. Outreach sent to families of first-gen and underrepresented students shortly after admission. Convocation attendance is typically 1,400–1,600 students per year. URSA participants often return as URSA Majors (peer mentors), creating a documented leadership pipeline.",pa:"URSA is optional and requires a fee — self-selection disproportionately benefits already-engaged students. No known formal follow-up process exists for students who do not attend Convocation. Welcome Week programming is built primarily for residential students.",eq:"Students who would most benefit from early community-building (first-gen, low-income) are least likely to self-select in without proactive outreach and fee waiver awareness. No equivalent structured belonging touchpoint at Welcome Week for commuter or local students. STILL OPEN: Documented retention difference for URSA participants vs. comparable non-participants not yet provided."},
+s1_m5_prelim:{ey:"Stage 1 · Belonging Gap",ti:"First Day — Commuter Belonging Gap",tg:['gap'],wh:"Residential students benefit from move-in, RA community, LLC assignment, and a full week of Welcome Week programming. Commuter and local students have a dedicated SOAR session with campus resources and involvement info, and a separate session for family members — but no equivalent structured belonging touchpoint at Welcome Week itself.",pa:"No formal plan exists for a commuter-specific belonging touchpoint at Welcome Week. The gap between residential and non-residential belonging experiences begins here and compounds through subsequent stages.",eq:"Students commuting from home face a belonging disadvantage with no institutional equivalent to the residential anchor provided by move-in and residence hall community."},
+s1_m1_fin:{ey:"Stage 1 · Financial Access",ti:"Complete FAFSA & Receive Financial Aid Package",tg:['pain','gap'],wh:"FAFSA priority deadline is December 1 for MSU scholarship consideration. Missouri Access Grant priority deadline is February 1. The financial aid award letter lives in the application status portal; students accept or decline aid in Banner. Admissions sent 7 direct communications about FAFSA and MO Access Grant deadlines in the past recruitment cycle.",pa:"Scholarship information was removed from the Missouri State website mid-cycle — front-line staff cannot answer financial aid questions. The award letter and aid action system are in two different platforms. MO Access Grant deadline not consistently communicated early in the cycle.",eq:"Pell-eligible students are retained at 68.5% vs. 76.5% overall — this gap begins here when students don't have a complete aid picture. First-gen families often misunderstand the difference between grants, loans, and scholarships; no financial literacy scaffolding accompanies the award letter."},
+s1_m3_fin:{ey:"Stage 1 · Financial Access",ti:"Pay Enrollment Fee (Transitioning to SOAR Fee)",tg:['ok'],wh:"The enrollment fee is being eliminated starting Summer 2026 and replaced with the SOAR registration fee only. Students who cannot pay immediately may defer payment to the fall, when Title IV funds can help. This deferral option has existed in prior cycles and will continue. The institution anticipates the committed-but-not-enrolled rate will decrease under the new structure.",pa:"The transition year may create confusion for students admitted across different cycles.",eq:"The deferral option is confirmed — this reduces the barrier for low-income students committed to attending but waiting on financial aid."},
+s1_m4_fin:{ey:"Stage 1 · Financial Access",ti:"Housing Application, Preference & Assignment",tg:['pain','gap'],wh:"Housing application call-to-action is sent at end of October. Students complete the application, sign a housing contract or request exemption, submit vaccine proof, and pay a housing deposit. Room and roommate assignments arrive in late spring. Living Learning Communities are promoted during this process.",pa:"Housing rates for the upcoming fall are unavailable when the housing application opens — the Board of Governors does not approve rates until May or June. Students are committing to housing without knowing the cost. Low-income students may not realize they have selected an expensive single-occupancy room.",eq:"The cost-unknown commitment is most damaging for low-income students who may make housing selections they cannot afford, only discovering this months later. Commuter exemptions are only available to eligible students — this limits housing choice flexibility for many first-year students."},
+s1_m1_acad:{ey:"Stage 1 · Academic Foundation",ti:"Submit Final Credentials & Transcripts",tg:['pain'],wh:"Students submit final high school transcripts, transcripts from any college attended (dual enrollment), and test scores that may confer credit (AP, IB, CLEP, SoBL). The Seal of Biliteracy (SoBL) has been added — a state-sponsored recognition of bilingualism in MO high school students that can result in significant credit for prior learning.",pa:"The dual credit process is especially challenging — students who took dual credit courses at Missouri State in high school may have locked or frozen accounts. This sometimes results in two accounts under the same M-number. Students and family members consistently report confusion about how to get transcripts sent.",eq:"Students from under-resourced high schools have fewer or no dual credit or AP credits. They start with less prior credit and may not understand the implications for the 30-credit scholarship renewal requirement."},
+s1_m3_acad:{ey:"Stage 1 · Academic Foundation",ti:"Math & English Placement Testing at SOAR",tg:['ok','open'],wh:"Math placement exam is not required for all students but is recommended if a student wants a higher-level math course. Same-day and next-morning results are now available (resolved Spring 2026). English placement is self-guided — students self-select into English courses.",pa:"Math placement policy is described as 'murky' — whether required, recommended, or optional varies by student profile and intended major, creating inconsistent guidance across departments.",eq:"Students from under-resourced or rural schools with limited advanced coursework may be underprepared for college-level math but not identified as such before the first day of class."},
+s1_m3_adv:{ey:"Stage 1 · Advising & Planning",ti:"SOAR Advisement & First Course Registration",tg:['gap','pain'],wh:"SOAR assigns 21 advising groups, each with a dedicated advisor. The SOAR advisor guides first-semester course selection. Permanent advisor assignment occurs AFTER the SOAR session — the SOAR advisor may not be the student's long-term advisor. A pre-orientation portal provides students information about what to prepare before SOAR.",pa:"The first and most intensive advising interaction of Stage 1 is with someone the student may never see again — a structural gap. No mandatory training exists for staff advisors; faculty advisors receive only general, not program-specific, training. Wide variation in advising quality within departments. Faculty documented to actively discourage students from certain majors. Scheduling systems vary by department — no central system.",eq:"For first-gen students, this 20-minute SOAR session may be their first-ever structured interaction with an academic advisor — insufficient for a population navigating all college systems for the first time. Students at later SOAR dates register with fewer open sections, compounding the retention risk."},
+s1_m4_adv:{ey:"Stage 1 · Advising & Planning",ti:"Major Declaration or Initial Academic Planning",tg:['ok','open'],wh:"Undeclared students are placed in SOAR groups designed to give an all-around view of Gen Ed and courses that match their interests. SOAR leaders actively communicate that it is okay to be undeclared. Approximately 30–40% of incoming students change their major at least once. GEP 101 has dedicated sections for undeclared students.",pa:"Students may feel pressure to declare a major at SOAR without sufficient exploration — the Career Center explicitly noted premature declarations driven by anxiety as a documented pain point.",eq:"First-gen students without college-going families are less likely to know that changing a major is common and normal. They may lock in early and feel trapped or face shame when they try to change later. STILL OPEN: Is the 'it's okay to be undeclared' message delivered consistently across all college-based orientation tracks?"},
+s1_m3_belong:{ey:"Stage 1 · Belonging & Engagement",ti:"BEARS Lead Program & SOAR Commuter Session",tg:['gap','open'],wh:"BEARS Lead is a cohort-based program for first-gen and low-income students (~150 students/cohort, supporting Years 1 and 2 — ~300 students active at any given time). Recruitment via Slate beginning in early May. A dedicated SOAR session exists for commuter students and a separate session for family members of commuter students.",pa:"At 150 students/cohort in a class of ~2,700 FTNC students, BEARS Lead's reach is limited relative to the scope of the challenge. August timing is before some SOAR dates — coordination between BEARS Lead and SOAR advisement may not be seamless.",eq:"Missouri State's data shows retention gaps: Pell-eligible at 68.5%, first-gen at ~69%, Black students at 62%, vs. 76.5% overall. BEARS Lead addresses exactly these conditions but cannot currently scale to the eligible population. STILL OPEN: Documented retention difference for BEARS Lead participants vs. comparable non-participants not yet provided."},
+s1_m4_belong:{ey:"Stage 1 · Belonging & Engagement",ti:"Move-In & Residential Community Orientation",tg:['gap'],wh:"Residence Life coordinates move-in logistics, promotes Living Learning Communities, and provides RA training. Floor and building community events are facilitated throughout the year.",pa:"LLC promotion is inconsistent — not all incoming residential students receive equal information about LLC options and their retention benefits. Students may not realize they can opt into or request an LLC assignment.",eq:"Local and commuter first-year students who do not move into residence halls are largely invisible in belonging-at-arrival programming. The assumption of a 'built-in buddy' through roommate matching creates a belonging risk when that relationship doesn't materialize — not currently proactively managed."},
+s1_m5_belong:{ey:"Stage 1 · Belonging",ti:"Belonging Risks — First Day Onward",tg:['gap'],wh:"Welcome Week programming is built primarily for residential students. Recent DEI policy changes have had a measurable negative impact on LGBTQ+ student and student of color belonging and institutional trust. Students described feeling 'erased from campus life' and seeking support off-campus.",pa:"Students are making professional decisions — including choosing geographic regions and employers — based on campus climate signals. Roommate dependency creates a belonging risk when the relationship doesn't materialize, not currently proactively managed.",eq:"LGBTQ+ students and students of color face amplified belonging risk from the recent policy environment. Non-residential students face a structural belonging disadvantage from day one, with no institutional equivalent to the residential anchor."},
+s1_m3_mh:{ey:"Stage 1 · Mental Health & Basic Needs",ti:"Counseling Center — SOAR Presence",tg:['ok'],wh:"The Counseling Center tables every SOAR session, including transfer SOAR and graduate orientation. CC is open during summer so families attending SOAR can speak directly with staff. All students gain access to Welltrack and Togetherall as soon as they have a university email address. No wait time has existed for the past two years despite over 3,000 sessions in spring semester alone.",pa:"Many students are engaging with mental health counseling for the very first time at college — they may have lived with conditions for years without formal support and are not prepared to seek it out independently.",eq:"The real gap is not whether the CC is present at Stage 1 — it is. The gap is whether students who most need support (Black students, LGBTQ+ students, first-gen students) are being reached by these touchpoints and choosing to utilize them. A presence at SOAR is not the same as a warm, normalized invitation to help-seeking for students whose cultural backgrounds or prior experiences create barriers."},
+s1_m4_mh:{ey:"Stage 1 · Mental Health & Basic Needs",ti:"Bear Pantry, Clothing Closet & Emergency Supports",tg:['gap'],wh:"The Bear Pantry tables during SOAR and is referenced in family presentations and the Bear Family Handbook. The Behavioral Intervention Team (BIT) includes Public Safety, Residence Life, and Case Management. Students can be referred or self-referred.",pa:"The BIT process is reactive rather than proactive. No documented formal integration of Bear Pantry awareness into SOAR programming beyond tabling — students may only encounter these resources in a crisis.",eq:"Students who arrive with caregiving responsibilities, financial fragility, or mental health histories are least likely to voluntarily self-refer. They need a warm, normalized introduction at the start — not a crisis referral later."},
+s1_m5_mh:{ey:"Stage 1 · Mental Health & Basic Needs",ti:"Counseling Center — Help-Seeking Gap",tg:['gap'],wh:"The CC is actively present at multiple Stage 1 touchpoints. CC presents at nearly every GEP 101 and UHC class. Proactive early-semester outreach includes tabling, Fresh Check Day, suicide screening, eating disorder screening, and anxiety screening. BoomerBot conducts periodic mental health check-ins.",pa:"The gap is not institutional presence — it is whether students whose backgrounds create barriers to self-referral are actually choosing to use available services.",eq:"Black students and students with pre-existing mental health concerns are most likely to need early support and least likely to self-refer. A table or syllabus mention is not the same as a warm, normalized invitation for students whose cultural or prior experiences create barriers to help-seeking."},
+s1_m3_career:{ey:"Stage 1 · Career & Future Self",ti:"Career Center at SOAR",tg:['gap'],wh:"The Career Center tables the campus expo during SOAR and offers two optional 30-minute breakout sessions. Students receive Career Center information in their student handbook. Family members receive CC information in the Bear Family Calendar and Bear Family Handbook. Breakout sessions are described as popular.",pa:"Career Center SOAR presence is optional — students who do not seek it out receive no career touchpoint at Stage 1. SOAR is already information-overloaded; optional breakout sessions compete with everything else.",eq:"Students in A&S and less career-defined majors — often first-gen — are least likely to proactively engage with the Career Center at SOAR. A table and optional sessions do not close that gap for students who need early career clarity most."},
+s1_m5_career:{ey:"Stage 1 · Career & Future Self",ti:"Handshake Enrollment",tg:['gap'],wh:"All students are enrolled in Handshake via weekly upload once they have enrolled in classes. Students enrolled via SOAR are added on the first day of class. Late enrollees are added by end of first week. An activation email campaign goes out near the start of the school year. Current Handshake activation rate (students who have made at least one appointment or completed a profile) is approximately 42%.",pa:"Students are not added to Handshake until after they enroll in classes — a missed opportunity for pre-arrival career exploration. Adding every applicant before enrollment would create a logistical burden to clean up non-enrollees.",eq:"Students with family career networks will find Handshake independently. First-gen students with less career capital are least likely to proactively seek it out and least likely to benefit from late discovery."},
+s2_m1_fin:{ey:"Stage 2 · Financial Access",ti:"Refile FAFSA & Meet Aid Renewal Criteria",tg:['gap','pain'],wh:"Students must stay current on FAFSA renewal (priority deadline October 1 for the following year) and meet financial aid renewal criteria: credit hours and GPA. The 30-credit hour renewal requirement for merit scholarships is in structural tension with typical first-semester loads of 14–15 credits.",pa:"GEP 101 is 2 credit hours. With GEP 101 and a standard science lab configuration, first-semester loads are typically 15 credits. The 30-credit scholarship renewal threshold remains structurally challenging for students whose schedules include multiple lab courses or lighter loads. Aid renewal criteria are communicated as facts but without planning support.",eq:"First-gen and Pell-eligible students are least likely to fully understand what meeting aid renewal criteria requires, and most likely to lose scholarships without realizing they were at risk."},
+s2_m2_fin:{ey:"Stage 2 · Financial Access",ti:"Pay Student Bill",tg:['gap','pain'],wh:"Students review and pay semester bills by deadline. Payment plan setup is available. Financial holds are placed on accounts with outstanding balances, which can prevent course registration for the next semester.",pa:"Financial holds and billing complexity are among the most common causes of stop-out but are minimally documented in the map with no formal intervention or escalation process. Midterms, fall break, and the drop period all coincide in the fall semester — a convergence of academic stress, financial decisions, and enrollment consequences.",eq:"Low-income students are disproportionately affected by billing errors and hold cycles. A billing hold can prevent registration for the next semester, creating a cascade that pushes students out without a formal warning system."},
+s2_m1_acad:{ey:"Stage 2 · Academic Foundation",ti:"GEP 101: First Year Foundations",tg:['gap','pain'],wh:"GEP 101 is a 2-credit required course for first-time, new college students. Students meet with their professor 1:1 within the first four weeks. Coursework includes a four-year academic plan in Degree Works. The Counseling Center presents at almost every GEP 101 and UHC class. Career Center staff present for career exploration via the Graduation and Career Readiness Plan assignment. Dedicated GEP 101 sections exist for undeclared students.",pa:"Career content in GEP 101 is not required — some instructors do not create space for it, leading to uneven exposure across sections. The two-year transition to the Brightspace LMS created sustained academic friction: professors who could not show grades, buried assignments, discussion boards easy to miss, insufficient faculty training at rollout.",eq:"GEP 101 is one of the few universal touchpoints for all FTNC students — potentially the highest-leverage intervention at MSU for student persistence. The absence of a required career content standard means equity of access to career preparation depends on which section a student is assigned to."},
+s2_m2_acad:{ey:"Stage 2 · Academic Foundation",ti:"Majors Fair & IDS 120",tg:['pain'],wh:"The Majors Fair date is added to the GEP 101 course syllabus as an encouraged event. Many instructors offer extra credit for attending, though attendance is not required because the fair is only offered for approximately 6 hours on one day. IDS 120 (Exploring Majors and Careers) is available as an optional deeper exploration course. Note: many of the topics addressed as students enter their 1st and 2nd years are also communicated through Bear Notes, the Family Programs monthly e-newsletter.",pa:"IDS 120 is optional — students who most need structured major exploration (undeclared, first-gen) are least likely to self-select into an additional course.",eq:"Are first-gen students who are undeclared being actively routed to the Majors Fair and IDS 120 as part of their GEP 101 or advisor interaction, or do these remain opt-in resources that only reach students who already have navigational capital?"},
+s2_m3_acad:{ey:"Stage 2 · Academic Foundation",ti:"Academic Advisor Appointments & Boomer Bot / ATLAS",tg:['gap','open'],wh:"Students meet with their academic advisor to plan next semester's courses and discuss degree audit in Degree Works. CORRECTION: ATLAS is NOT replacing Boomer Bot/EdSights. ATLAS surfaces select Boomer Bot data elements within a single advising interface, reducing advisor need to log into multiple systems — but core Boomer Bot functionality and analytics continue in the EdSights dashboard. Management is a collaborative effort among Graduate College, OIE, Student Success, and Student Affairs. Current Boomer Bot engagement: 93% of students opt in; 51% are engaged (at least 3 interactions/semester); 51,167 messages received from students in the past 12 months. The 95% coverage goal refers to ATLAS advising platform coverage, not Boomer Bot replacement.",pa:"Students receive no notification if they drop below 12 credits or withdraw — advisors may not know a student is in jeopardy until after the drop period. During the ATLAS transition period, some students will be on old systems and some on new, creating inconsistent outreach. Course numbering is being restructured — online vs. in-person vs. hybrid options are difficult to identify quickly.",eq:"Decentralized advising means quality and frequency varies significantly by major and college. Boomer Bot is a helpful supplement but may not be sufficient for students like Trey who need a human relationship, not a bot nudge, to feel they belong. STILL OPEN: Are students who opt out of Boomer Bot (~7% of the student body) disproportionately the most at-risk students? Worth analyzing against EdSights data."},
+s2_m2_adv:{ey:"Stage 2 · Advising & Planning",ti:"Choose a Major or Continue Structured Exploration",tg:['gap'],wh:"Career Resource Specialists are available for advising. Specialized support exists for undeclared students, including referrals and career assessments. The Boomer career timeline checklist outlines major and career milestones by year.",pa:"Students may feel pressure to declare a major early — the Career Center explicitly noted premature declarations driven by anxiety as a documented pain point. The Boomer career timeline checklist is not formally integrated into GEP 101 or advising appointments.",eq:"For students choosing a major without guidance from family, community, or role models, this is a high-stakes decision made largely alone. The Career Center's undeclared student support is a real asset, but only if students know it exists and are actively routed to it."},
+s2_m3_adv:{ey:"Stage 2 · Advising & Planning",ti:"Advising Appointment for Spring Registration",tg:['gap'],wh:"Students continue meeting with their academic advisor for spring semester course selection. Boomer Bot career timeline checklist is available but not formally integrated into standard advising appointments.",pa:"No formal mechanism exists for faculty and student support staff to communicate about shared student populations. Offices are geographically dispersed, budgets separated by unit, no shared case management system for students with complex, multi-office needs.",eq:"Decentralized advising continues. Faculty advisor vs. staff advisor distinction is unclear to students. Students in larger programs receive less individualized attention."},
+s2_m1_belong:{ey:"Stage 2 · Belonging & Engagement",ti:"Welcome Week, Organizations & House Calls",tg:['gap'],wh:"The Office of Student Engagement coordinates Welcome Week. Student organizations provide belonging, leadership, and professional development. CORRECTION: House Calls is a one-time visit during a specific evening at the beginning of the fall semester — NOT an ongoing or recurring program. Faculty and staff visit residence halls on that single evening for proactive outreach and relationship-building with first-year students.",pa:"A significant number of first-year students are commuting from home — Welcome Week is built primarily for residential students. Students who do not get connected to organizations in Year 1 are less likely to take on leadership roles later. The concern about House Calls is scale: does it reach enough students, often enough, with enough follow-through?",eq:"Local and commuter first-year students face a structural belonging disadvantage. House Calls reaches only residential students. No equivalent proactive outreach touchpoint exists for commuter first-year students, further widening the belonging gap between residential and non-residential students. STILL OPEN: What follow-up pathways exist after the one-time visit? Are students who show signs of disengagement flagged for further outreach?"},
+s2_m2_belong:{ey:"Stage 2 · Belonging & Engagement",ti:"Student Employment",tg:['gap'],wh:"The student employment fair connects students to on-campus employment opportunities. Work-study, if applicable, provides a subsidized on-campus employment pathway. On-campus employment builds relationships with faculty and staff and develops workforce readiness skills.",pa:"Work-study award process has changed — the new model reduces the number of students who qualify for work-study, leaving fewer students with a subsidized pathway to on-campus employment.",eq:"On-campus employment is one of the most evidence-backed belonging and retention interventions, particularly for first-gen and low-income students. Changes to work-study eligibility that reduce access disproportionately affect the students who most benefit."},
+s2_m1_mh:{ey:"Stage 2 · Mental Health & Basic Needs",ti:"Access Counseling Center",tg:['gap'],wh:"No wait time for first appointment has existed for the past two years despite over 3,000 sessions in spring semester alone. All students receive a 30-minute screening for step-care model placement. Proactive early-semester outreach begins the first day of class: tabling, Fresh Check Day, screenings, and BoomerBot check-ins. CC presents at almost every GEP 101 and UHC class. CC is open year-round with walk-in hours and a 24/7 crisis call line. CC also provides psychoeducational curriculum support (6–8 topics) to graduate programs upon request.",pa:"First-year students are often engaging with mental health services for the very first time — they may have lived with anxiety, depression, or other conditions for years and arrive ready to seek help only if the pathway is clear and normalized.",eq:"Trey arrives with caregiving responsibilities, financial pressures, and documented fear of not belonging — a profile consistently linked to early mental health struggles. The gap is whether students whose cultural backgrounds create barriers to self-referral are being reached and choosing to utilize available services."},
+s2_m2_mh:{ey:"Stage 2 · Mental Health & Basic Needs",ti:"Bear Pantry & Clothing Closet Ongoing Access",tg:['gap'],wh:"The Bear Pantry and Clothing Closet are resources provided by Student Affairs. Referrals come through BIT, Residence Life, advisors, or self-referral.",pa:"The ongoing concern is whether students who need these resources know about them proactively or only encounter them in a crisis moment.",eq:"Are basic needs resources communicated in financial aid award letters, SOAR, or GEP 101 so that students who may need them are aware before they reach food insecurity?"},
+s2_m3_mh:{ey:"Stage 2 · Mental Health & Basic Needs",ti:"Midterm / Fall Break / Drop Period Convergence",tg:['gap'],wh:"Midterms, fall break, and the drop period all coincide in the fall semester, creating a convergence of academic stress, financial decisions, and enrollment consequences at the same moment.",pa:"This known high-stress convergence point is not formally addressed with proactive mental health outreach — the single most predictable peak-risk moment in the academic year, with no corresponding institutional response protocol.",eq:"Trey and Trisha's profiles — financial pressure, caregiving, and first-time mental health engagement — represent exactly the students most at risk during this convergence. The lack of a formal proactive response disproportionately affects students with the least support infrastructure."},
+s2_m1_career:{ey:"Stage 2 · Career & Future Self",ti:"Claim Handshake & Career Center in GEP 101",tg:['gap'],wh:"All students are in Handshake by their second semester. The Career Center is embedded in GEP 101 via the Graduation and Career Readiness Plan assignment. Career Resource Specialists are available for advising.",pa:"Many students do not discover or actively use Handshake until later in their enrollment when they need it urgently. Career content in GEP 101 varies by section — not required — some instructors opt out, creating uneven career exposure.",eq:"GEP 101 career content is the most broadly accessible career touchpoint at MSU. The fact that it is not required creates an equity problem: students in sections where instructors opt out receive no career introduction. First-gen students with less career capital are least likely to proactively engage without a prompt."},
+s3_m1_fin:{ey:"Stage 3 · Financial Access",ti:"Transfer Aid Reset & Emergency Financial Aid",tg:['gap','open'],wh:"Financial aid information is incorporated into broader transfer orientation. Students have access to financial aid counselors for individualized guidance but must initiate contact. Emergency financial assistance resources exist at MSU — students typically learn through communications or referrals, not a proactive touchpoint.",pa:"There is NO dedicated proactive financial aid advising session for transfer students focused on the time-to-degree gap. Transfer students are often caught off guard by the difference between aid at their prior institution and aid at MSU.",eq:"Trisha's profile — financial aid anxiety, concern about finishing on time, discovering that 2 more years may not be realistic — represents a real and common transfer student experience. MSU enrolled ~1,300 new transfer students in Fall 2025. This is not an edge case."},
+s3_m2_fin:{ey:"Stage 3 · Financial Access",ti:"Aid Consequences of Missing 30-Credit Renewal",tg:['gap','pain'],wh:"Students who lost merit scholarships due to missing the 30-credit threshold in Year 1 now face Year 2 with a changed and potentially more difficult financial picture. There is no documented proactive outreach at this transition.",pa:"The Financial Aid office has confirmed it does not have staffing capacity to provide proactive individualized financial aid advising for students experiencing significant changes in their aid eligibility.",eq:"Transfer students often arrive believing their 2 years at community college will translate cleanly to 2 more years at MSU — credit evaluation and aid eligibility frequently mean they need more time, compounding the financial picture."},
+s3_m1_acad:{ey:"Stage 3 · Academic Foundation",ti:"Transition from Pre-Major to Major",tg:['gap'],wh:"Students must meet GPA requirements, course requirements, and complete application materials for major admission. Academic departments admit students to programs based on requirements. Advisors guide students through the application process.",pa:"Major admission requirements vary significantly across programs — students in nursing, education, and business face competitive GPA thresholds not always communicated clearly at SOAR. Students who do not meet the GPA cutoff face a significant pivot without a clear alternative pathway.",eq:"First-gen students and Pell-eligible students who experienced academic difficulty in Year 1 are most likely to not meet competitive major admission cutoffs, and most likely to lack the navigational knowledge to identify and pursue alternatives."},
+s3_m2_acad:{ey:"Stage 3 · Academic Foundation",ti:"Required Advising Through 75 Credit Hours",tg:['gap'],wh:"Required advising continues until students have completed 75 credit hours AND obtained three advisor releases — whichever comes later. The three-release minimum was implemented specifically because transfer students with associate's degrees could otherwise exit required advising before establishing a meaningful advising relationship at MSU.",pa:"The advising cliff at 75 credit hours is a significant and documented gap — students who hit 75 hours in Stage 3 or early Stage 4 are on their own for the final stretch. The 75-hour mark arrives very quickly for transfer students with associate's degrees.",eq:"The advising cliff disproportionately affects students who most need ongoing support — first-gen students without family guidance, students in major transitions, and transfer students navigating new systems."},
+s3_m3_adv:{ey:"Stage 3 · Advising & Planning",ti:"Approaching the 75-Hr Advising Cliff",tg:['gap','open'],wh:"No formal post-75-hour advising touchpoint currently exists. The Registrar conducts a graduation check only when a student formally declares their semester of graduation. The College of Business runs regular reports on students who have surpassed certain credit-hour thresholds — this model could potentially be replicated institutionally.",pa:"The 75-to-120 credit-hour gap — from the end of required advising to graduation — is where students can silently accumulate problems without any institutional intervention.",eq:"This gap is felt most acutely by students who are not self-advocates: first-gen students, students with mental health challenges, and students who assumed the institution was tracking their progress. STILL OPEN: Is the institution ready to move this from 'groundswell' discussion to a formal proposal?"},
+s3_m1_belong:{ey:"Stage 3 · Belonging & Engagement",ti:"Transfer Student Orientation & Belonging Integration",tg:['gap','pain'],wh:"New transfer orientation was first held on-campus January 9, 2026 — a new program still being developed and not yet a robust, full experience. A new transfer handbook has been created. Honor society participation for transfer students is an emerging area of focus.",pa:"Transfer students enter a campus community with a year of shared history they do not share. FOCUS GROUP DATA: Transfer student support at Missouri State is concentrated in a single staff role — one person responsible for a population constituting approximately half of the student body. The institution's 3-year graduation rate for transfer students has not exceeded 59% in the past decade. Single-person programs cannot scale to serve entire student populations. (Source: Faculty/Staff Focus Group, Finding 7; Participant 02; April 2026)",eq:"Trisha's profile — online learner, working 20–25 hours per week, lives off campus, struggles with social isolation — represents a significant at-risk population that is easy to miss because she may appear fine on the surface. The transfer experience at MSU is not yet comprehensively documented or supported."},
+s3_m2_belong:{ey:"Stage 3 · Belonging & Engagement",ti:"Organization Leadership & Honor Societies",tg:['ok','open'],wh:"Students are expected to pursue leadership roles in student organizations and consider honor society participation. Student Life supports leadership development. Honor societies and specialized organizations offer deeper engagement. CONFIRMED DATA: Executive board participation among student organization members is tracked. Current data shows 318 executive board members compared to 3,189 sophomore (Year 2) student organization members — approximately 10.0% of sophomore organization members hold an executive leadership role.",pa:"Students who did not build connections in Year 1 face a harder entry to campus belonging in Year 2. Honor societies typically require application fees or one-time membership fees — a financial barrier on top of GPA thresholds and prior engagement requirements.",eq:"Honor society participation and organization leadership opportunities are not equally distributed — they require GPA thresholds, prior engagement, and awareness that first-gen and transfer students are less likely to have. STILL OPEN: For transfer students like Trisha who arrive at a campus community with a year of shared history they were not part of, is there a structured on-ramp for belonging, or is community-building entirely self-directed? Are honor society invitations reaching first-gen and Pell-eligible students who meet eligibility requirements?"},
+s3_m1_career:{ey:"Stage 3 · Career & Future Self",ti:"Résumé, LinkedIn & Interview Skills",tg:['pain'],wh:"The Career Center provides individual advising, résumé support, and interview preparation. Big Interview is available as an online practice tool. Career Resource Specialists are available for advising.",pa:"Students who have not connected with the Career Center in Year 1 arrive in Year 2 with a résumé they have never worked on and interview skills they have never practiced, now expected to pursue internships. Career readiness milestones here are largely student-driven — the institutional column is thin.",eq:"First-gen students often do not know what a polished résumé or strong interview looks like. They lack the informal mentorship and career capital that students from college-going families have."},
+s3_m2_career:{ey:"Stage 3 · Career & Future Self",ti:"Summer Internship Search",tg:['gap'],wh:"All internship postings are in Handshake. Career Center can support internship search. Some departments and colleges require internships through their own department, creating complex navigation. For teacher certification candidates, the final semester consists of a 16-week unpaid practicum required by the state.",pa:"Internship identification and navigation is decentralized — some programs require internships through the department, others through the Career Center, and some students are navigating entirely alone.",eq:"Students who need income from summer work (first-gen, low-income) face a direct trade-off between unpaid internships with career value and paid employment they need to survive. This structural economic barrier is not addressed in the current map."},
+s4_m1_fin:{ey:"Stage 4 · Financial Access",ti:"Aid Renewal & Financial Planning — Year 3",tg:['gap'],wh:"Students continue FAFSA renewal and must meet aid renewal criteria. Some who relied on merit scholarships face a different financial picture — scholarships exhausted, aid package changed — with no documented proactive financial advising conversation. Transfer students with prior institution aid history may be approaching lifetime eligibility limits.",pa:"Financial aid complexity continues but institutional guidance is minimal — required advising has ended for most students. No documented proactive financial planning support exists at this stage.",eq:"Students on extended timelines due to credit deficits in Year 1 or major changes face a compounding financial challenge: more years = more cost = more debt, with no proactive financial planning support."},
+s4_m2_acad:{ey:"Stage 4 · Academic Foundation",ti:"Upper-Division Major Coursework",tg:['gap'],wh:"Students are enrolled in upper-division major courses, navigating prerequisites, course availability, and degree audit via Degree Works. ATLAS is launching but not yet at full coverage. Students with double majors may never have created an advising relationship with their second major's department.",pa:"Students receive no notification if they drop below 12 credits or withdraw. Few second-block class offerings limit ability to make up deficiencies. Course numbering restructuring is ongoing.",eq:"The advising cliff at 75 hours falls most heavily on students who most need ongoing support: first-gen students without family guidance, students who changed majors late, and transfer students still learning MSU's systems."},
+s4_m3_acad:{ey:"Stage 4 · Academic Foundation",ti:"Post-75-Hr Self-Navigation via Degree Works",tg:['gap'],wh:"From this point, students are responsible for tracking their own graduation requirements in Degree Works without a mandatory check-in. ATLAS is new; as of May 2026, faculty advisors reviewing degree audits in capstone courses are not aware of any active system notifications of missing items.",pa:"The institution currently has no alert, hold, or outreach mechanism for students who cross 90 or 100 credit hours without being on track. The 'groundswell' for a post-75-hour touchpoint has not yet moved toward a formal proposal.",eq:"The advising cliff arrives at the most consequential moment — closer to graduation, the cost of missing requirements is more expensive: additional semesters, delayed graduation, and potential aid expiry."},
+s4_m4_acad:{ey:"Stage 4 · Academic Foundation",ti:"Education Abroad Experience",tg:['pain','ok'],wh:"Education abroad is open to all students. Funding available includes: College-specific Education Abroad Scholarships ($238,200 awarded fall 2023–summer 2025), MSU Foundation Scholarships ($48,850 in same period), third-party scholarships, and Gilman Scholarships for Pell-eligible students (27 students received $92,500 in Gilman funding fall 2023–summer 2025).",pa:"The $1,000 Education Abroad Voucher previously available through Board of Governors, Deans, Provost, and Engaged Citizen Scholarships has been ELIMINATED following recent scholarship program restructuring — a material reduction in financial access to education abroad.",eq:"Education abroad is a high-impact practice with significant belonging and career benefits, but requires financial resources and scheduling flexibility that can exclude first-gen and low-income students without targeted funding. The loss of the Education Abroad Voucher compounds this access barrier."},
+s4_m3_adv:{ey:"Stage 4 · Advising & Planning",ti:"Post-75-Hr: No Formal Touchpoint",tg:['gap'],wh:"Required advising has ended. Post-75-hour advising is entirely voluntary with no institutional requirement and no alert system for off-track students. The Registrar conducts a graduation check only when a student formally declares their semester of graduation.",pa:"At 75 hours, the institutional hand comes off the wheel. Students transitioning out of required advising receive no formal communication about what changes — they may not even know the advising requirement has ended. The 75-to-120 credit-hour gap is the most under-documented stretch in the entire journey map.",eq:"This gap is more acute in Stage 4 because students are closer to graduation and the consequences of missing requirements are more expensive — additional semesters, delayed graduation, and potential aid expiry."},
+s4_m2_belong:{ey:"Stage 4 · Belonging & Engagement",ti:"Leadership, Research & On-Campus Employment",tg:['ok','open'],wh:"Students are expected to step into leadership roles in student organizations, pursue on-campus research or employment, and explore study abroad. The institution's approach is to create broadly inclusive programs intended to appeal to all Missouri State students, faculty, and staff, rather than programming targeted at one specific student population. Commuter and non-residential students may experience upper-division campus life differently, but the philosophy centers on open and accessible engagement opportunities for the broader campus community. CONFIRMED: Boomer Bot checks on students regardless of the number of credit hours completed regarding engagement and isolation — this outreach is not limited to students in required advising windows. A proactive touchpoint for socially isolated upper-division students exists, though it is bot-based rather than human-to-human.",pa:"Students who did not build campus connections in Years 1 and 2 are now in upper-division classes with much smaller peer networks — the organic community-building opportunity is largely over.",eq:"Students working significant off-campus hours to support themselves or their families may be advancing academically but unable to take on campus leadership roles. Their contributions and growth are largely invisible to the institution. CONFIRMED GAP (MSU team review, June 2026): There is no documented institutional recognition for non-campus forms of leadership and responsibility — such as caregiving, community work, or off-campus employment — that students like Trey may be carrying."},
+s4_m4_career:{ey:"Stage 4 · Career & Future Self",ti:"Career Fairs, Internships & Graduate School Consideration",tg:['gap','open'],wh:"Career Center coordinates career fairs and internship posting in Handshake. The Career Center has a 'Graduate School Preparation' appointment type. Graduate school is discussed in 'What Can I Do With This Major' appointments. Some programs proactively target undergraduates for graduate enrollment.",pa:"Internship identification remains decentralized. Students who did not engage with career services in Years 1 and 2 are now in Year 3 without a résumé, without a LinkedIn profile, and applying for internships at the last minute.",eq:"First-gen students are significantly less likely to consider graduate school because no one in their family network has done it. STILL OPEN: Is the self-initiated appointment model sufficient for first-gen students? What would a proactive graduate school awareness touchpoint look like at Stage 4?"},
+s5_m1_fin:{ey:"Stage 5 · Financial Access",ti:"Final Aid Renewal & Billing",tg:['gap'],wh:"Students in their fifth or sixth year may face reduced or eliminated financial aid eligibility. Final billing must be resolved before graduation clearance. Financial holds can prevent graduation clearance even for academically ready students.",pa:"The final years can be the most financially precarious for students who experienced setbacks in Years 1 through 3. No documented proactive financial planning support for students on extended timelines.",eq:"Students who entered with credit deficits, changed majors, or stopped out temporarily now face the compounded financial cost of additional years and are least likely to have family financial support to cover additional semesters."},
+s5_m2_acad:{ey:"Stage 5 · Academic Foundation",ti:"University Exit Exam at 102 Credit Hours",tg:['open'],wh:"The university exit exam is currently a data collection and institutional assessment tool only — data is collected and analyzed after the fact. It is NOT designed to support current students. However, if ATLAS could flag students at 102 credit hours who are not on track for graduation, the exit exam touchpoint could potentially serve a dual purpose.",pa:"The exit exam is a required institutional assessment, but how the data collected informs real-time student support or advisor outreach is not documented.",eq:"Students who are at 102 credit hours but not on track for graduation are the population that most needs a proactive intervention at this moment. STILL OPEN: This potential dual-purpose use requires a formal proposal and cross-office coordination. No formal plan exists."},
+s5_m3_acad:{ey:"Stage 5 · Academic Foundation",ti:"Graduation Check & Degree Audit Application",tg:['gap','open'],wh:"Graduation audits are currently issued AFTER a student formally declares their semester of graduation — the process is student-initiated, not proactively triggered by the institution. The Registrar conducts a graduation check at that point; if deficiencies are found, an advising note is entered and both the student and advisor are copied.",pa:"Students who lost required advising at 75 hours may be discovering missing graduation requirements for the first time at the graduation check — at a point where resolution requires additional semesters and potentially additional cost.",eq:"Students who experienced misadvising or no advising in the 75-to-120 credit-hour gap are most likely to discover problems at graduation. STILL OPEN: Strong interest exists in a proactive graduation readiness check — either a hold requiring an advising appointment or an ATLAS-triggered alert. Which office would own this, and what is the timeline?"},
+s5_m4_belong:{ey:"Stage 5 · Belonging & Engagement",ti:"Graduation Fair, Commencement & Celebration",tg:['ok','open'],wh:"One-stop shop for graduation merchandise at the graduation fair. Commencement ceremony and celebrations coordinated institutionally. CONFIRMED: All completing and graduating students are required to apply to graduate, and commencement information is included in that application. A graduation and commencement Brightspace community exists — all graduating students are added to it and it provides commencement information proactively. Commencement participation numbers are tracked at the aggregate level.",pa:"Students who have been disengaged from campus life throughout their journey may not participate in commencement even after completing requirements. CONFIRMED GAP: Commencement participation is not tracked at the individual student level. There is no follow-up process for students who completed degree requirements but did not attend commencement — this remains a gap for students who have been less connected to campus throughout their journey.",eq:"Are culturally specific graduation celebrations (first-gen ceremony, multicultural convocation) available for the student populations who faced the most significant access and persistence barriers? This remains open."},
+s5_m3_mh:{ey:"Stage 5 · Mental Health & Basic Needs",ti:"CC 'What's Next?' Support for Graduating Seniors",tg:['ok'],wh:"The Counseling Center offers services specifically geared toward graduating seniors experiencing anxiety about entering the workforce. The CC also works with Athletics to offer sessions on identity transition ('what's next after your identity is no longer tied to athletics') — this type of session can be adapted for any student group navigating major life changes at graduation.",pa:"Students who relied on campus wellness resources face an abrupt loss at graduation without a referral pathway to community equivalents. Community mental health resources have waitlists.",eq:"This gap disproportionately affects students whose primary mental health access was campus-based, including first-gen students and students of color who may not have community equivalents available."},
+s5_m4_mh:{ey:"Stage 5 · Mental Health & Basic Needs",ti:"Post-Graduation Wellness Continuity Gap",tg:['gap'],wh:"Students who relied on the Counseling Center face an abrupt loss of access at graduation. Community mental health resources have waitlists. No formal referral pathway to community equivalents is documented.",pa:"Counseling continuity is particularly challenging as community mental health resources have waitlists. The transition from campus to community mental health services is unmanaged for most graduating students.",eq:"Students whose primary mental health access was through campus — including first-gen students and students of color who may not have family-based or community referral networks — face the highest risk of continuity gap."},
+s5_m3_career:{ey:"Stage 5 · Career & Future Self",ti:"Job Search & Career Launch",tg:['gap'],wh:"Career Center coordinates career fairs and provides job search support via Handshake. Career Resource Specialists are available. Faculty and staff focus group participants collectively endorsed the idea of a required one-credit career exploration course at the sophomore-to-junior transition to prompt students before it is too late to act.",pa:"Students who did not engage with career services in Years 1 through 3 arrive at graduation without a network, without an updated résumé, and without interview experience. Decentralized internship experience in some programs means students' work experience is difficult to translate to employers.",eq:"First-gen students without a professional network face a structural disadvantage that career coaching alone cannot fully overcome. Students in A&S without a clear career pipeline who were never systematically connected to career services face the steepest climb."},
+s5_m4_career:{ey:"Stage 5 · Career & Future Self",ti:"Graduate Outcomes Survey",tg:['open'],wh:"The Career Center sends the Graduate Outcomes Survey via Handshake. Current response rate: approximately 22%; knowledge rate (combining responses with known outcomes through other means): approximately 75%. 81% of respondents are White; 27.5% are first-generation.",pa:"Response rate is approximately 22% — data may be unrepresentative of outcomes for students least connected to campus systems. Patterns of non-response by demographic group have NOT yet been formally analyzed.",eq:"Students most at risk of being underrepresented in outcomes data (first-gen, Black, Pell-eligible) may be less likely to respond. This creates a data blind spot precisely where the institution most needs visibility — at the moment these populations enter the workforce or pursue graduate education."}
+};
+function openDetail(id){
+  const d=D[id]; if(!d) return;
+  currentId = id;
+  document.getElementById('d-eyebrow').textContent=d.ey;
+  document.getElementById('d-title').textContent=d.ti;
+  document.getElementById('d-tags').innerHTML=d.tg.map(k=>T[k]||'').join(' ');
+  document.getElementById('d-what').textContent=d.wh;
+  document.getElementById('d-pain').textContent=d.pa;
+  document.getElementById('d-equity').textContent=d.eq;
+  loadMilestone(id);
+  document.getElementById('ld-saved-msg').classList.remove('show');
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
+document.addEventListener('DOMContentLoaded', initBadges);
+</script>
+</body>
+</html>
