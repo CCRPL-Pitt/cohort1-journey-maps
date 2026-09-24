@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>California State University, Fresno -- Student Journey Map</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --cardinal: #C41230;
+    --cardinal-mid: #8f0d23;
+    --cardinal-light: #fdf0f0;
+    --blue: #13284C;
+    --text: #1a1a1a;
+    --text-mid: #4a4a4a;
+    --text-muted: #767676;
+    --border: #e0e0e0;
+    --bg: #f5f4f2;
+    --c-prelim: #C41230;
+    --c-fin: #7a5a00;
+    --c-acad: #13284C;
+    --c-adv: #4b1d6b;
+    --c-belong: #7a3b12;
+    --c-mh: #1a4a2e;
+    --c-career: #6b1a30;
+    --gap-bg: #fde8e8; --gap-text: #7a1010;
+    --pain-bg: #fff3cd; --pain-text: #7a5400;
+    --open-bg: #dbeafe; --open-text: #1a4480;
+    --ok-bg: #d1fae5; --ok-text: #064e3b;
+    --radius: 8px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.5; min-height: 100vh; }
+  .site-header { background: var(--cardinal); color: white; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 52px; position: sticky; top: 0; z-index: 50; gap: 12px; }
+  .site-header-left { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .site-logo { font-size: 14px; font-weight: 600; color: white; white-space: nowrap; }
+  .site-logo span { color: #ffffff; opacity: 0.85; }
+  .header-label { font-size: 11px; color: rgba(255,255,255,0.55); border-left: 1px solid rgba(255,255,255,0.2); padding-left: 10px; white-space: nowrap; }
+  .stage-nav { display: flex; gap: 4px; flex-shrink: 0; }
+  .stage-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); border-radius: 5px; padding: 4px 10px; font-size: 11px; font-weight: 500; cursor: pointer; transition: background 0.15s, color 0.15s; white-space: nowrap; font-family: var(--font); }
+  .stage-btn:hover { background: rgba(255,255,255,0.22); color: white; }
+  .stage-btn.active { background: var(--blue); color: #ffffff; border-color: var(--blue); }
+  .export-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); border-radius: 5px; padding: 4px 10px; font-size: 11px; font-weight: 500; cursor: pointer; font-family: var(--font); white-space: nowrap; }
+  .export-btn:hover { background: rgba(255,255,255,0.22); color: white; }
+  .stage-panel { display: none; padding: 0 0 48px; }
+  .stage-panel.visible { display: block; }
+  .stage-hero { background: var(--cardinal); color: white; padding: 20px 20px 16px; border-bottom: 3px solid var(--blue); }
+  .stage-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #c9d9f0; margin-bottom: 4px; }
+  .stage-title { font-size: 20px; font-weight: 600; line-height: 1.2; margin-bottom: 4px; }
+  .stage-subtitle { font-size: 12px; color: rgba(255,255,255,0.65); margin-bottom: 14px; }
+  .data-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .data-chip { background: rgba(19,40,76,0.95); border: 1px solid rgba(120,150,195,0.55); border-radius: 6px; padding: 5px 10px; text-align: center; min-width: 88px; }
+  .data-chip strong { display: block; font-size: 14px; font-weight: 700; color: #ffffff; line-height: 1.2; }
+  .data-chip span { font-size: 10px; color: rgba(255,255,255,0.8); line-height: 1.3; display: block; }
+  .persona-bar { background: #f0f3f8; border-bottom: 1px solid #d8dfeb; padding: 6px 20px; font-size: 10px; color: var(--blue); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .persona-bar strong { font-weight: 700; }
+  .legend-bar { background: white; border-bottom: 1px solid var(--border); padding: 7px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .legend-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .tag { display: inline-flex; align-items: center; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; line-height: 1.4; }
+  .tag-gap   { background: var(--gap-bg);  color: var(--gap-text); }
+  .tag-pain  { background: var(--pain-bg); color: var(--pain-text); }
+  .tag-open  { background: var(--open-bg); color: var(--open-text); }
+  .tag-ok    { background: var(--ok-bg);   color: var(--ok-text); }
+  .map-grid-wrap { overflow-x: auto; padding: 14px 20px 0; }
+  .map-grid { display: grid; min-width: 700px; }
+  .col-header { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 10px; font-weight: 600; color: var(--text-mid); text-align: center; line-height: 1.35; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+  .col-header .col-n { font-size: 16px; font-weight: 700; color: var(--cardinal); line-height: 1; }
+  .lane-header-cell { background: transparent; border: none; padding: 8px 0; display: flex; align-items: center; }
+  .lane-header-cell span { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .lane-label { border-radius: 8px; padding: 8px 10px; display: flex; align-items: flex-start; gap: 6px; color: white; font-size: 11px; font-weight: 600; line-height: 1.35; min-height: 64px; align-self: stretch; }
+  .lane-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+  .cell { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; cursor: pointer; transition: border-color 0.12s, box-shadow 0.12s; display: flex; flex-direction: column; gap: 4px; min-height: 64px; align-self: stretch; }
+  .cell:hover { border-color: var(--cardinal); box-shadow: 0 0 0 2px rgba(196,18,48,0.1); }
+  .cell.empty { background: var(--bg); border-style: dashed; border-color: #d8d8d8; cursor: default; pointer-events: none; }
+  .cell-milestone { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.35; }
+  .cell-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 2px; }
+  .cell-hint { font-size: 9px; color: var(--text-muted); margin-top: auto; padding-top: 4px; }
+  .gap-summary { margin: 16px 20px 0; background: var(--cardinal-light); border: 1px solid #f0c0c8; border-radius: var(--radius); padding: 14px 16px; }
+  .gap-summary-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--cardinal); margin-bottom: 10px; }
+  .gap-row { display: grid; grid-template-columns: 160px 1fr; gap: 8px 12px; margin-bottom: 6px; align-items: start; }
+  .gap-lane-label { font-size: 11px; font-weight: 600; color: var(--cardinal-mid); }
+  .gap-lane-text { font-size: 11px; color: var(--text-mid); line-height: 1.5; }
+  .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; }
+  .drawer-overlay.open { display: block; }
+  .drawer { position: fixed; right: -480px; top: 0; bottom: 0; width: 440px; max-width: 95vw; background: white; z-index: 201; display: flex; flex-direction: column; transition: right 0.25s cubic-bezier(0.4,0,0.2,1); }
+  .drawer.open { right: 0; }
+  .drawer-header { background: var(--cardinal); color: white; padding: 16px 20px; flex-shrink: 0; position: relative; }
+  .drawer-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #ffffff; opacity: 0.85; margin-bottom: 4px; }
+  .drawer-title { font-size: 15px; font-weight: 600; line-height: 1.3; padding-right: 32px; }
+  .drawer-close { position: absolute; top: 14px; right: 16px; background: rgba(255,255,255,0.15); border: none; color: white; width: 28px; height: 28px; border-radius: 50%; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: var(--font); }
+  .drawer-close:hover { background: rgba(255,255,255,0.25); }
+  .drawer-body { padding: 18px; overflow-y: auto; flex: 1; }
+  .drawer-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 16px; }
+  .d-section { margin-bottom: 16px; }
+  .d-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+  .d-section-text { font-size: 12px; line-height: 1.65; color: var(--text-mid); }
+  .ld-panel { background: #f8f8f6; border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
+  .ld-panel-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .ld-panel-title::before { content: '◎'; color: var(--blue); }
+  .ld-row { margin-bottom: 10px; }
+  .ld-label { font-size: 10px; font-weight: 600; color: var(--text-mid); margin-bottom: 4px; display: block; }
+  .ld-status-group { display: flex; gap: 4px; flex-wrap: wrap; }
+  .ld-status-btn { font-size: 10px; font-weight: 600; padding: 4px 9px; border-radius: 4px; border: 1px solid var(--border); background: white; cursor: pointer; color: var(--text-mid); font-family: var(--font); transition: all 0.12s; }
+  .ld-status-btn:hover { border-color: var(--cardinal); }
+  .ld-status-btn.sel-active    { background: var(--gap-bg);  color: var(--gap-text);  border-color: var(--gap-text); }
+  .ld-status-btn.sel-progress  { background: var(--pain-bg); color: var(--pain-text); border-color: var(--pain-text); }
+  .ld-status-btn.sel-addressed { background: var(--ok-bg);   color: var(--ok-text);   border-color: var(--ok-text); }
+  .ld-status-btn.sel-monitoring{ background: var(--open-bg); color: var(--open-text); border-color: var(--open-text); }
+  .ld-date { font-size: 12px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 4px; font-family: var(--font); color: var(--text); width: 100%; background: white; }
+  .ld-notes { font-size: 12px; padding: 7px 9px; border: 1px solid var(--border); border-radius: 4px; font-family: var(--font); color: var(--text); width: 100%; min-height: 72px; resize: vertical; line-height: 1.5; background: white; }
+  .ld-date:focus, .ld-notes:focus { outline: none; border-color: var(--cardinal); }
+  .ld-save-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .ld-save-btn { font-size: 11px; font-weight: 600; padding: 5px 14px; border-radius: 5px; border: none; background: var(--cardinal); color: white; cursor: pointer; font-family: var(--font); }
+  .ld-save-btn:hover { background: var(--cardinal-mid); }
+  .ld-saved-msg { font-size: 10px; color: var(--ok-text); font-weight: 600; opacity: 0; transition: opacity 0.3s; }
+  .ld-saved-msg.show { opacity: 1; }
+  .cell-status-badge { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-top: 3px; display: inline-block; letter-spacing: 0.03em; }
+  .sb-active     { background: var(--gap-bg);  color: var(--gap-text); }
+  .sb-progress   { background: var(--pain-bg); color: var(--pain-text); }
+  .sb-addressed  { background: var(--ok-bg);   color: var(--ok-text); }
+  .sb-monitoring { background: var(--open-bg); color: var(--open-text); }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-left">
+    <div class="site-logo">Fresno <span>State</span></div>
+    <div class="header-label">Student Journey Map · CCRPL · 2026</div>
+  </div>
+  <nav class="stage-nav">
+    <button class="stage-btn active" onclick="showStage(1)" id="btn-1">Stage 1</button>
+    <button class="stage-btn" onclick="showStage(2)" id="btn-2">Stage 2</button>
+    <button class="stage-btn" onclick="showStage(3)" id="btn-3">Stage 3</button>
+    <button class="stage-btn" onclick="showStage(4)" id="btn-4">Stage 4</button>
+    <button class="stage-btn" onclick="showStage(5)" id="btn-5">Stage 5</button>
+    <button class="export-btn" onclick="exportStatus()" title="Export all milestone notes and statuses">↓ Export Status</button>
+  </nav>
+</header>
+
+<!-- STAGE 1 -->
+<section class="stage-panel visible" id="stage-1">
+  <div class="stage-hero">
+    <div class="stage-eyebrow">Stage 1 of 5</div>
+    <div class="stage-title">Outreach → First Day of Classes</div>
+    <div class="stage-subtitle">From admission decision and financial aid through Dog Days orientation, technology activation, and the first day of Year 1</div>
+    <div class="data-chips">
+      <div class="data-chip"><strong>~7%</strong><span>Admitted student melt rate after Dog Days -- students who attend orientation but never enroll for fall semester</span></div>
+      <div class="data-chip"><strong>~250</strong><span>Students who enroll and register but never show up for the first day of class -- consuming limited course seats</span></div>
+      <div class="data-chip"><strong>125+</strong><span>Emails sent to a single admitted student before the first day of classes; students tune out and miss critical action items</span></div>
+      <div class="data-chip"><strong>28%</strong><span>First-time freshmen who live on campus; the majority are commuters, making belonging infrastructure critical for off-campus students</span></div>
+      <div class="data-chip"><strong>~800:1</strong><span>Estimated advisor-to-student caseload across the institution -- among the highest barriers to personalized advising identified in focus groups</span></div>
+      <div class="data-chip"><strong>~30%</strong><span>Incoming students with dual enrollment credits -- many block-scheduled into courses they may not need</span></div>
+    </div>
+  </div>
+  <div class="persona-bar">
+    <strong>Key personas:</strong>
+    <span>👤 Selena -- first-gen, junior nursing student, single parent, full-time work, commuter</span>
+    <span>👤 Tou -- first-gen, Hmong, rural, sophomore business major working 20-30 hrs/week</span>
+    <span>👤 Adrian -- first-gen, undeclared freshman, academic warning, fraternity member, part-time work</span>
+  </div>
+  <div class="legend-bar">
+    <span class="legend-label">Key</span>
+    <span class="tag tag-gap">Equity gap</span>
+    <span class="tag tag-pain">Pain point</span>
+    <span class="tag tag-open">Still open</span>
+    <span class="tag tag-ok">Confirmed</span>
+    <span style="font-size:10px;color:var(--text-muted);margin-left:6px;">Click any milestone for detail</span>
+  </div>
+  <div class="map-grid-wrap">
+    <div class="map-grid" style="grid-template-columns: 150px repeat(6, minmax(150px,1fr)); gap: 5px;">
+      <div class="lane-header-cell"><span>Swim Lane</span></div>
+      <div class="col-header"><div class="col-n">M1</div>Admission Decision &amp; Enrollment Commitment</div>
+      <div class="col-header"><div class="col-n">M2</div>Financial Aid Application &amp; Account Activation</div>
+      <div class="col-header"><div class="col-n">M3</div>Preview Days &amp; Family Engagement</div>
+      <div class="col-header"><div class="col-n">M4</div>Dog Days Orientation, Advising &amp; Block Scheduling</div>
+      <div class="col-header"><div class="col-n">M5</div>Summer Gap Communication &amp; Housing Move-In</div>
+      <div class="col-header"><div class="col-n">M6</div>First Day &amp; First Semester Transition</div>
+
+            <div class="lane-label" style="background:var(--c-prelim)"><span class="lane-icon">🏁</span>Preliminary Milestones</div>
+      <div class="cell" onclick="openDetail('s1_m1_prelim')"><div class="cell-milestone">Accept admission by May 1 and register for Dog Days; timing and process differ for transfer, adult, and high school students</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s1_m2_prelim')"><div class="cell-milestone">Create and activate Fresno State email, set up Duo two-factor authentication, and access the student portal</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s1_m3_prelim')"><div class="cell-milestone">Admitted students and families attend Preview Days: campus tour, resource overview, and scavenger hunt of campus services</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-fin)"><span class="lane-icon">💰</span>Financial Access</div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s1_m2_fin')"><div class="cell-milestone">Submit FAFSA or CADAA by priority deadlines; first-generation students often navigate this step with no family blueprint</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-acad)"><span class="lane-icon">📚</span>Academic Foundation</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-adv)"><span class="lane-icon">🗺</span>Advising &amp; Planning</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s1_m4_adv')"><div class="cell-milestone">Attend Dog Days orientation, meet with an advisor, confirm or informally change major, and get block-scheduled into first courses</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-belong)"><span class="lane-icon">🤝</span>Belonging &amp; Engagement</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s1_m5_belong')"><div class="cell-milestone">Manage communication overload through the summer gap while preparing housing, forms, and finances before the semester begins</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s1_m6_belong')"><div class="cell-milestone">Navigate the physical and digital campus simultaneously while learning higher-education expectations for the first time</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="lane-label" style="background:var(--c-mh)"><span class="lane-icon">🌿</span>(Mental) Health &amp; Basic Needs</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-career)"><span class="lane-icon">🎯</span>Career &amp; Future Self</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+    </div>
+  </div>
+  <div class="gap-summary">
+    <div class="gap-summary-title">⚑ Stage 1 Gap Summary</div>
+    <div class="gap-row"><div class="gap-lane-label">Preliminary Milestones</div><div class="gap-lane-text">Admitted student melt of roughly 7 percent peaks in the post-Dog Days summer gap, with no structured re-engagement until the first day of class. Technology activation (Duo, portal) creates drop-off before enrollment is confirmed, and the portal itself has been described internally as needing a significant update that has not yet happened.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Financial Access</div><div class="gap-lane-text">Students do not understand that FAFSA is an annual requirement. Financial aid office hours (8am to 5pm) are inaccessible to commuter and working students. Focus groups described the financial aid office as understaffed and difficult to reach, with one student needing two hours of driving just to complete a payment.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Academic Foundation</div><div class="gap-lane-text">Major misalignment begins at the application stage; students are presented with an exhaustive list of majors on Cal State Apply with little context. The change-of-major process after Dog Days is confusing and creates early advising barriers, sometimes setting students up to fail rather than succeed.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Advising &amp; Planning</div><div class="gap-lane-text">Dog Days is information-overloaded and students retain very little; advisors report students falling asleep in appointments. Advisor caseloads near 800 to 1 make meaningful one-on-one advising structurally difficult at orientation. Block scheduling creates friction for dual enrollment students.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Belonging &amp; Engagement</div><div class="gap-lane-text">Communication overload (125+ emails) drives disengagement. No structured activity exists between Dog Days and the first day of class, and additional welcome events after Dog Days have been described internally as unsuccessful. Welcome Week is not fully designed for a commuter campus.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">(Mental) Health &amp; Basic Needs</div><div class="gap-lane-text">Not formally mapped in Stage 1: no proactive wellness introduction, mental health screening, or basic needs intake at orientation. The Student Cupboard, Essential Needs, and Parent Scholars programs exist but are not introduced as a Stage 1 milestone.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Career &amp; Future Self</div><div class="gap-lane-text">Career guidance is largely absent from recruitment and orientation. Students are asked to select a major from an exhaustive list with little career context, and no formal career exploration milestone exists before the first day of class.</div></div>
+  </div>
+</section>
+
+<!-- STAGE 2 -->
+<section class="stage-panel" id="stage-2">
+  <div class="stage-hero">
+    <div class="stage-eyebrow">Stage 2 of 5</div>
+    <div class="stage-title">Year One Enrollment</div>
+    <div class="stage-subtitle">First Day of Year 1 through end of the academic year -- hold resolution, financial aid renewal, and the shift out of block scheduling</div>
+    <div class="data-chips">
+      <div class="data-chip"><strong>~250</strong><span>Students who enroll but never show up for Year 1 -- consuming course seats and financial aid without engaging</span></div>
+      <div class="data-chip"><strong>20-25%</strong><span>Students with financial challenges that create registration holds ($900 threshold) at the end of the census period</span></div>
+      <div class="data-chip"><strong>~800:1</strong><span>Average advisor caseload -- making proactive outreach during Year 1 structurally difficult at scale</span></div>
+      <div class="data-chip"><strong>Highest</strong><span>Stop-out rate is highest among first-time freshmen, especially those who have not completed the Golden 4</span></div>
+      <div class="data-chip"><strong>Block Enrolled</strong><span>First-year students are block-enrolled -- a major benefit, but creates a jarring sophomore cliff when block enrollment ends</span></div>
+      <div class="data-chip"><strong>$900</strong><span>Registration hold threshold -- students with a balance at or above $900 after census cannot register for the next semester</span></div>
+    </div>
+  </div>
+  <div class="persona-bar">
+    <strong>Key personas:</strong>
+    <span>👤 Selena -- first-gen, junior nursing student, single parent, full-time work, commuter</span>
+    <span>👤 Tou -- first-gen, Hmong, rural, sophomore business major working 20-30 hrs/week</span>
+    <span>👤 Adrian -- first-gen, undeclared freshman, academic warning, fraternity member, part-time work</span>
+  </div>
+  <div class="legend-bar">
+    <span class="legend-label">Key</span>
+    <span class="tag tag-gap">Equity gap</span>
+    <span class="tag tag-pain">Pain point</span>
+    <span class="tag tag-open">Still open</span>
+    <span class="tag tag-ok">Confirmed</span>
+    <span style="font-size:10px;color:var(--text-muted);margin-left:6px;">Click any milestone for detail</span>
+  </div>
+  <div class="map-grid-wrap">
+    <div class="map-grid" style="grid-template-columns: 150px repeat(5, minmax(150px,1fr)); gap: 5px;">
+      <div class="lane-header-cell"><span>Swim Lane</span></div>
+      <div class="col-header"><div class="col-n">M1</div>Fall Census &amp; Hold Resolution</div>
+      <div class="col-header"><div class="col-n">M2</div>Academic Foundation &amp; Course Sequencing</div>
+      <div class="col-header"><div class="col-n">M3</div>Spring FAFSA Renewal &amp; Financial Aid Management</div>
+      <div class="col-header"><div class="col-n">M4</div>Belonging, Basic Needs &amp; Career Exploration</div>
+      <div class="col-header"><div class="col-n">M5</div>End of Year 1 Re-Enrollment</div>
+
+            <div class="lane-label" style="background:var(--c-prelim)"><span class="lane-icon">🏁</span>Preliminary Milestones</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-fin)"><span class="lane-icon">💰</span>Financial Access</div>
+      <div class="cell" onclick="openDetail('s2_m1_fin')"><div class="cell-milestone">Monitor Student Center for holds and clear balances before the $900 registration hold threshold after census</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s2_m3_fin')"><div class="cell-milestone">Reapply for financial aid when FAFSA/CADAA opens October 1, with a March 2 priority filing deadline, and manage SAP and refund questions</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-acad)"><span class="lane-icon">📚</span>Academic Foundation</div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s2_m2_acad')"><div class="cell-milestone">Learn to read a syllabus and manage college-level expectations while completing gateway English and Math (Golden 4) courses</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-adv)"><span class="lane-icon">🗺</span>Advising &amp; Planning</div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s2_m2_adv')"><div class="cell-milestone">Meet with an advisor to understand course sequencing, prerequisites, and how the roadmap connects to the DPR</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s2_m3_adv')"><div class="cell-milestone">Understand the enrollment and financial aid consequences of dropping below 12 units or full-time status</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s2_m5_adv')"><div class="cell-milestone">Independently enroll in next-semester courses, navigating prerequisites and rotating course availability without block scheduling</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="lane-label" style="background:var(--c-belong)"><span class="lane-icon">🤝</span>Belonging &amp; Engagement</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s2_m4_belong')"><div class="cell-milestone">Attend Welcome Week events, get a student ID, and begin exploring clubs and campus involvement</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-mh)"><span class="lane-icon">🌿</span>(Mental) Health &amp; Basic Needs</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s2_m4_mh')"><div class="cell-milestone">Access the Student Cupboard, Essential Needs, Parent Scholars, and counseling support as needed</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-career)"><span class="lane-icon">🎯</span>Career &amp; Future Self</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s2_m4_career')"><div class="cell-milestone">Begin exploring career options and how the declared or intended major connects to future career paths</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+    </div>
+  </div>
+  <div class="gap-summary">
+    <div class="gap-summary-title">⚑ Stage 2 Gap Summary -- Year One Enrollment</div>
+    <div class="gap-row"><div class="gap-lane-label">Financial Access</div><div class="gap-lane-text">20 to 25 percent of students carry financial holds. The $900 threshold creates registration blocks that are not always paired with proactive outreach. SAP consequences, especially MAX-time issues with no formal warning semester, are not well communicated. FAFSA renewal surprise, students believing it is one-and-done like admissions, is a major cause of financial disruption in Year 1.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Academic Foundation</div><div class="gap-lane-text">No campus-wide early alert system exists, and where informal alerts do occur, application is inconsistent across departments. Students who have not completed the Golden 4 face the highest stop-out risk on campus. Dual enrollment credit misalignment creates unexpected GE gaps, particularly in Math.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Advising &amp; Planning</div><div class="gap-lane-text">Advisor caseloads near 800 to 1 make proactive outreach structurally difficult. Students describe the DPR as lacking a clear visual progress indicator, with an accurate replacement not expected until 2027. Block scheduling protects Year 1 enrollment but leaves students unpracticed at independent registration heading into Year 2.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Belonging &amp; Engagement</div><div class="gap-lane-text">Belonging is described as developing through specific relationships, not programs, yet structural investment in those relationships is insufficient. Commuter students remain most underserved. Students are frequently bounced between offices without a single point of contact.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">(Mental) Health &amp; Basic Needs</div><div class="gap-lane-text">Shame is repeatedly named as the primary barrier to help-seeking. Financial aid, counseling, and Essential Needs all operate 8am to 5pm only. The Student Cupboard's in-library pop-up partnership is described as an effective, low-barrier model worth expanding.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Career &amp; Future Self</div><div class="gap-lane-text">Career planning begins too late and is not embedded in curriculum or classroom conversation. First-generation students have no career mentorship outside the institution if career services does not intentionally reach them in Year 1.</div></div>
+  </div>
+</section>
+
+<!-- STAGE 3 -->
+<section class="stage-panel" id="stage-3">
+  <div class="stage-hero">
+    <div class="stage-eyebrow">Stage 3 of 5</div>
+    <div class="stage-title">Year Two Enrollment</div>
+    <div class="stage-subtitle">First Day of Year 2 through end of year -- major declaration, the sophomore drop-off, and the first year of leadership eligibility</div>
+    <div class="data-chips">
+      <div class="data-chip"><strong>Highest Risk</strong><span>Stop-out is highest after first-year freshmen, then sophomores -- the sophomore transition is the most predictable and least-addressed drop-off point</span></div>
+      <div class="data-chip"><strong>Pre-Major</strong><span>Many students get stuck in pre-major status in Year 2, delaying access to major coursework and advising</span></div>
+      <div class="data-chip"><strong>~800:1</strong><span>Advisor caseload means students struggling mid-journey are least likely to receive proactive outreach</span></div>
+      <div class="data-chip"><strong>DPR Confusion</strong><span>The Degree Progress Report is described as confusing across focus groups; students want a visual progress bar; an updated system is not expected until 2027</span></div>
+      <div class="data-chip"><strong>Block Ends</strong><span>Block enrollment ends -- students must independently register for the first time; sophomores were the largest group at a registration tabling event seeking help</span></div>
+      <div class="data-chip"><strong>~60%</strong><span>Nearly 60% of the student body is engaged in unpaid internships -- a significant equity concern for low-income students</span></div>
+    </div>
+  </div>
+  <div class="persona-bar">
+    <strong>Key personas:</strong>
+    <span>👤 Selena -- first-gen, junior nursing student, single parent, full-time work, commuter</span>
+    <span>👤 Tou -- first-gen, Hmong, rural, sophomore business major working 20-30 hrs/week</span>
+    <span>👤 Adrian -- first-gen, undeclared freshman, academic warning, fraternity member, part-time work</span>
+  </div>
+  <div class="legend-bar">
+    <span class="legend-label">Key</span>
+    <span class="tag tag-gap">Equity gap</span>
+    <span class="tag tag-pain">Pain point</span>
+    <span class="tag tag-open">Still open</span>
+    <span class="tag tag-ok">Confirmed</span>
+    <span style="font-size:10px;color:var(--text-muted);margin-left:6px;">Click any milestone for detail</span>
+  </div>
+  <div class="map-grid-wrap">
+    <div class="map-grid" style="grid-template-columns: 150px repeat(4, minmax(150px,1fr)); gap: 5px;">
+      <div class="lane-header-cell"><span>Swim Lane</span></div>
+      <div class="col-header"><div class="col-n">M1</div>Financial Holds &amp; Payments Continued</div>
+      <div class="col-header"><div class="col-n">M2</div>Major Declaration &amp; Pre-Major Exit</div>
+      <div class="col-header"><div class="col-n">M3</div>Course Sequencing, Academic Progress &amp; DPR</div>
+      <div class="col-header"><div class="col-n">M4</div>Belonging, Wellbeing &amp; Career Exploration</div>
+
+            <div class="lane-label" style="background:var(--c-prelim)"><span class="lane-icon">🏁</span>Preliminary Milestones</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-fin)"><span class="lane-icon">💰</span>Financial Access</div>
+      <div class="cell" onclick="openDetail('s3_m1_fin')"><div class="cell-milestone">Monitor and resolve financial holds; students who stopped engaging after Year 1 face the highest risk of accumulating balances</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-acad)"><span class="lane-icon">📚</span>Academic Foundation</div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s3_m2_acad')"><div class="cell-milestone">Complete requirements to exit pre-major status and formally declare a major, ideally before it delays progress further</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s3_m3_acad')"><div class="cell-milestone">Follow course sequencing, accumulate units toward junior status, and use the DPR to track remaining requirements</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-adv)"><span class="lane-icon">🗺</span>Advising &amp; Planning</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s3_m3_adv')"><div class="cell-milestone">Continue advising engagement as independent registration replaces block scheduling</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-belong)"><span class="lane-icon">🤝</span>Belonging &amp; Engagement</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s3_m4_belong')"><div class="cell-milestone">Continue building belonging through clubs and relationships as the Year 1 cohort structure disappears</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="lane-label" style="background:var(--c-mh)"><span class="lane-icon">🌿</span>(Mental) Health &amp; Basic Needs</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s3_m4_mh')"><div class="cell-milestone">Manage compounding mental health, family, and self-advocacy pressures as first-year support structures fall away</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="lane-label" style="background:var(--c-career)"><span class="lane-icon">🎯</span>Career &amp; Future Self</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s3_m4_career')"><div class="cell-milestone">Attend career workshops, meet with a career counselor, and begin building a resume, though nearly 60% work unpaid internships</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+    </div>
+  </div>
+  <div class="gap-summary">
+    <div class="gap-summary-title">⚑ Stage 3 Gap Summary -- Year Two Enrollment</div>
+    <div class="gap-row"><div class="gap-lane-label">Financial Access</div><div class="gap-lane-text">The same cascading hold and registration system continues. Students who entered Year 1 with unresolved financial confusion now face compounded risk, and disengaged students may simply stop enrolling rather than navigate hold resolution.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Academic Foundation</div><div class="gap-lane-text">Major declaration delays peak here. The DPR is confusing and frequently inaccurate, with an update not expected until 2027. Students who did not pass the Golden 4 are at risk of stopping out at this stage. Roadmaps are inconsistent across departments.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Advising &amp; Planning</div><div class="gap-lane-text">The sophomore transition is the most predictable and least-addressed drop-off. Block enrollment ends, making independent registration a new and unsupported skill. Fewer than 15 coaches support every student on academic notice or warning campus-wide.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Belonging &amp; Engagement</div><div class="gap-lane-text">Cohort belonging from block enrollment disappears. Sophomore students feel abandoned. Commuter students remain most underserved. No universal sophomore-experience program exists.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">(Mental) Health &amp; Basic Needs</div><div class="gap-lane-text">Mental health, financial, and family pressures peak in Years 2 through 3. Most support efforts remain focused on Year 1. Students on academic warning are the most likely to disengage from all support systems at once.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Career &amp; Future Self</div><div class="gap-lane-text">Nearly 60 percent of students hold unpaid internships, an equity barrier for low-income students. Career planning is optional and is not reaching most students at this stage.</div></div>
+  </div>
+</section>
+
+<!-- STAGE 4 -->
+<section class="stage-panel" id="stage-4">
+  <div class="stage-hero">
+    <div class="stage-eyebrow">Stage 4 of 5</div>
+    <div class="stage-title">Year Three Enrollment</div>
+    <div class="stage-subtitle">First Day of Year 3 through end of year -- graduation tracking, transfer integration, and the widening internship equity gap</div>
+    <div class="data-chips">
+      <div class="data-chip"><strong>~25%</strong><span>Estimated students facing graduation delays due to course availability issues, per faculty and staff focus groups</span></div>
+      <div class="data-chip"><strong>Course Access</strong><span>Course access is the single greatest barrier to timely graduation for UDT students and many others in Year 3 and beyond</span></div>
+      <div class="data-chip"><strong>Junior Cliff</strong><span>After the sophomore stop-out, junior year is the next-highest stop-out point, as life pressures peak for upper-division students</span></div>
+      <div class="data-chip"><strong>UDT Best</strong><span>University Division of Transition (UDT) students have the best retention rates on campus -- a model worth studying and scaling</span></div>
+      <div class="data-chip"><strong>Transfer Entry</strong><span>Transfer students entering in Year 3 must navigate belonging, credit recognition, and advising in compressed time</span></div>
+      <div class="data-chip"><strong>Internship Gap</strong><span>Internships are difficult to secure; ~60% of students are engaged in unpaid internships -- inequitable for students who cannot afford to work for free</span></div>
+    </div>
+  </div>
+  <div class="persona-bar">
+    <strong>Key personas:</strong>
+    <span>👤 Selena -- first-gen, junior nursing student, single parent, full-time work, commuter</span>
+    <span>👤 Tou -- first-gen, Hmong, rural, sophomore business major working 20-30 hrs/week</span>
+    <span>👤 Adrian -- first-gen, undeclared freshman, academic warning, fraternity member, part-time work</span>
+  </div>
+  <div class="legend-bar">
+    <span class="legend-label">Key</span>
+    <span class="tag tag-gap">Equity gap</span>
+    <span class="tag tag-pain">Pain point</span>
+    <span class="tag tag-open">Still open</span>
+    <span class="tag tag-ok">Confirmed</span>
+    <span style="font-size:10px;color:var(--text-muted);margin-left:6px;">Click any milestone for detail</span>
+  </div>
+  <div class="map-grid-wrap">
+    <div class="map-grid" style="grid-template-columns: 150px repeat(4, minmax(150px,1fr)); gap: 5px;">
+      <div class="lane-header-cell"><span>Swim Lane</span></div>
+      <div class="col-header"><div class="col-n">M1</div>Financial Holds &amp; Payments -- Year 3</div>
+      <div class="col-header"><div class="col-n">M2</div>Upper-Division Coursework, Graduation Tracking &amp; Transfer Integration</div>
+      <div class="col-header"><div class="col-n">M3</div>Leadership, Belonging &amp; Life Balance</div>
+      <div class="col-header"><div class="col-n">M4</div>Experiential Learning &amp; Career Readiness</div>
+
+            <div class="lane-label" style="background:var(--c-prelim)"><span class="lane-icon">🏁</span>Preliminary Milestones</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-fin)"><span class="lane-icon">💰</span>Financial Access</div>
+      <div class="cell" onclick="openDetail('s4_m1_fin')"><div class="cell-milestone">Pay outstanding balances and monitor SAP standing as compounded debt from earlier years increasingly threatens continued enrollment</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-acad)"><span class="lane-icon">📚</span>Academic Foundation</div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s4_m2_acad')"><div class="cell-milestone">Stay on track for graduation through upper-division coursework; transfer students entering at Year 3 complete orientation and credit integration</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-adv)"><span class="lane-icon">🗺</span>Advising &amp; Planning</div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s4_m2_adv')"><div class="cell-milestone">Complete formal degree progress reviews with an advisor to confirm remaining requirements and plan the final two years</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-belong)"><span class="lane-icon">🤝</span>Belonging &amp; Engagement</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s4_m3_belong')"><div class="cell-milestone">Step into leadership roles in student organizations and campus initiatives while sustaining relationships built over the prior two years</div><div class="cell-tags"></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-mh)"><span class="lane-icon">🌿</span>(Mental) Health &amp; Basic Needs</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s4_m3_mh')"><div class="cell-milestone">Balance academic demands, work, and family obligations as campus support becomes less visible than in earlier years</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-career)"><span class="lane-icon">🎯</span>Career &amp; Future Self</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s4_m4_career')"><div class="cell-milestone">Attend a career fair, work with a career counselor on resume review, and apply for internships, though unpaid internships remain the norm</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+    </div>
+  </div>
+  <div class="gap-summary">
+    <div class="gap-summary-title">⚑ Stage 4 Gap Summary -- Year Three Enrollment</div>
+    <div class="gap-row"><div class="gap-lane-label">Financial Access</div><div class="gap-lane-text">Students in Year 3 who have accumulated balances from Year 1 or 2 face compounded debt, and continued enrollment is increasingly at risk. Small financial barriers in Years 3 and 4 have outsized consequences.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Academic Foundation</div><div class="gap-lane-text">Students are unsure if they are on track; DPR confusion persists. Every course section is described as full in every department. Course access is the single greatest barrier to timely graduation for UDT students; 100 percent of UDT students are expected to be delayed by it. Transfer students face significant advising challenges around credit recognition.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Advising &amp; Planning</div><div class="gap-lane-text">Inconsistencies exist in advising access and quality across departments. Technology makes running academic audits difficult, limiting advisors' ability to catch problems proactively in Years 3 and 4.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Belonging &amp; Engagement</div><div class="gap-lane-text">Support and outreach for Years 3 and 4 students is significantly less robust than for Year 1 students. Transfer students in Year 3 have limited time to build campus-based belonging before graduation.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">(Mental) Health &amp; Basic Needs</div><div class="gap-lane-text">Students in Year 3 face financial, housing, and mental health barriers, yet most support and outreach still focuses on first- and second-year students. Stop-out risk in Year 3 is often driven by life pressures rather than academic performance alone.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Career &amp; Future Self</div><div class="gap-lane-text">Career prep remains optional and late for most students. Nearly 60 percent are engaged in unpaid internships, an equity barrier for low-income students. Career guidance often comes too late for students who have already accumulated the wrong courses.</div></div>
+  </div>
+</section>
+
+<!-- STAGE 5 -->
+<section class="stage-panel" id="stage-5">
+  <div class="stage-hero">
+    <div class="stage-eyebrow">Stage 5 of 5</div>
+    <div class="stage-title">Year Four to Graduation</div>
+    <div class="stage-subtitle">Final year(s) through degree completion, commencement, and the post-graduation transition</div>
+    <div class="data-chips">
+      <div class="data-chip"><strong>Unknown %</strong><span>The institution does not systematically track near-completers -- students close to graduating but facing small barriers are not reliably identified</span></div>
+      <div class="data-chip"><strong>DPR Errors</strong><span>Students discover DPR errors late, including courses listed for their catalog year that have not been offered in five years</span></div>
+      <div class="data-chip"><strong>Grad Fee Shock</strong><span>Focus group participants described genuine surprise at graduation fees, regalia costs, and other unanticipated expenses</span></div>
+      <div class="data-chip"><strong>Course Closures</strong><span>Course availability closures are most painful at Stage 5 -- a student one class from graduating who cannot get in may delay by a full semester</span></div>
+      <div class="data-chip"><strong>Career Late</strong><span>Students tend to seek career guidance late -- connecting their skills to career opportunities is a primary challenge at graduation</span></div>
+      <div class="data-chip"><strong>Alumni Access</strong><span>Students can access the Career Development Center as alumni, but most are not informed of this at graduation</span></div>
+    </div>
+  </div>
+  <div class="persona-bar">
+    <strong>Key personas:</strong>
+    <span>👤 Selena -- first-gen, junior nursing student, single parent, full-time work, commuter</span>
+    <span>👤 Tou -- first-gen, Hmong, rural, sophomore business major working 20-30 hrs/week</span>
+    <span>👤 Adrian -- first-gen, undeclared freshman, academic warning, fraternity member, part-time work</span>
+  </div>
+  <div class="legend-bar">
+    <span class="legend-label">Key</span>
+    <span class="tag tag-gap">Equity gap</span>
+    <span class="tag tag-pain">Pain point</span>
+    <span class="tag tag-open">Still open</span>
+    <span class="tag tag-ok">Confirmed</span>
+    <span style="font-size:10px;color:var(--text-muted);margin-left:6px;">Click any milestone for detail</span>
+  </div>
+  <div class="map-grid-wrap">
+    <div class="map-grid" style="grid-template-columns: 150px repeat(4, minmax(150px,1fr)); gap: 5px;">
+      <div class="lane-header-cell"><span>Swim Lane</span></div>
+      <div class="col-header"><div class="col-n">M1</div>Final Financial Barriers &amp; Aid Resolution</div>
+      <div class="col-header"><div class="col-n">M2</div>Degree Audit, Final Courses &amp; Graduation Application</div>
+      <div class="col-header"><div class="col-n">M3</div>Experiential Learning &amp; Career Preparation</div>
+      <div class="col-header"><div class="col-n">M4</div>Transition to Career / Workforce &amp; Commencement</div>
+
+            <div class="lane-label" style="background:var(--c-prelim)"><span class="lane-icon">🏁</span>Preliminary Milestones</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-fin)"><span class="lane-icon">💰</span>Financial Access</div>
+      <div class="cell" onclick="openDetail('s5_m1_fin')"><div class="cell-milestone">Resolve final balances and apply for completion grants where available, since even small barriers can now block a degree</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-acad)"><span class="lane-icon">📚</span>Academic Foundation</div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s5_m2_acad')"><div class="cell-milestone">Complete a formal degree audit, finish remaining required courses, and submit the graduation application through the student portal</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-adv)"><span class="lane-icon">🗺</span>Advising &amp; Planning</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-belong)"><span class="lane-icon">🤝</span>Belonging &amp; Engagement</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s5_m4_belong')"><div class="cell-milestone">Complete final clearance requirements and attend commencement, including identity-affirming graduation ceremonies</div><div class="cell-tags"></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="lane-label" style="background:var(--c-mh)"><span class="lane-icon">🌿</span>(Mental) Health &amp; Basic Needs</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="lane-label" style="background:var(--c-career)"><span class="lane-icon">🎯</span>Career &amp; Future Self</div>
+      <div class="cell empty"></div>
+      <div class="cell empty"></div>
+      <div class="cell" onclick="openDetail('s5_m3_career')"><div class="cell-milestone">Complete an internship or professional experience requirement and participate in career preparation, resume review, and job or graduate school applications</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span><span class="tag tag-pain">Pain point</span></div><div class="cell-hint">↗ Detail</div></div>
+      <div class="cell" onclick="openDetail('s5_m4_career')"><div class="cell-milestone">Finalize the transition into the workforce or graduate school, including plans for housing, healthcare, and finances after graduation</div><div class="cell-tags"><span class="tag tag-gap">Equity gap</span></div><div class="cell-hint">↗ Detail</div></div>
+    </div>
+  </div>
+  <div class="gap-summary">
+    <div class="gap-summary-title">⚑ Stage 5 Gap Summary -- Year Four to Graduation</div>
+    <div class="gap-row"><div class="gap-lane-label">Financial Access</div><div class="gap-lane-text">Small financial barriers at graduation have disproportionate consequences. Completion grants are not yet available at scale. Surprise costs, fees and regalia, affect low-income students. Loan repayment is not genuinely understood at exit.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Academic Foundation</div><div class="gap-lane-text">Near-completers are not systematically tracked. DPR inaccuracies create late-stage discovery of missing requirements, including courses not offered in years. Course availability closures are most painful at this stage. Misadvising consequences are felt most acutely at graduation.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Advising &amp; Planning</div><div class="gap-lane-text">Graduation audit authority (course substitutions by deans and chairs) exists but is used inconsistently. Students with catalog-year course gaps face an inequitable burden with no consistent resolution process.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Belonging &amp; Engagement</div><div class="gap-lane-text">Identity-affirming celebrations exist, but accessibility for commuter, caregiving, and housing-insecure students is not tracked. Capturing alumni contact information is a challenge after graduation.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">(Mental) Health &amp; Basic Needs</div><div class="gap-lane-text">No post-graduation transition support is documented for students who relied on campus essential needs resources. The Student Cupboard is not available to alumni, and there is no documented warm referral pathway to community resources at graduation.</div></div>
+    <div class="gap-row"><div class="gap-lane-label">Career &amp; Future Self</div><div class="gap-lane-text">Students often graduate without competitive experiential credentials. Career guidance is sought too late. Underemployment is a primary concern. Alumni access to the Career Development Center is not communicated proactively.</div></div>
+  </div>
+</section>
+
+<!-- DRAWER -->
+<div class="drawer-overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-eyebrow" id="d-eyebrow">Detail</div>
+    <div class="drawer-title" id="d-title">Loading…</div>
+    <button class="drawer-close" onclick="closeDrawer()" aria-label="Close">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-tags" id="d-tags"></div>
+    <div class="ld-panel">
+      <div class="ld-panel-title">Continuous Improvement Tracking</div>
+      <div class="ld-row">
+        <span class="ld-label">Status</span>
+        <div class="ld-status-group">
+          <button class="ld-status-btn" data-val="active"     onclick="setStatus('active')"     id="sb-active">Active Gap</button>
+          <button class="ld-status-btn" data-val="progress"   onclick="setStatus('progress')"   id="sb-progress">In Progress</button>
+          <button class="ld-status-btn" data-val="addressed"  onclick="setStatus('addressed')"  id="sb-addressed">Addressed</button>
+          <button class="ld-status-btn" data-val="monitoring" onclick="setStatus('monitoring')" id="sb-monitoring">Monitoring</button>
+        </div>
+      </div>
+      <div class="ld-row">
+        <label class="ld-label" for="ld-date-input">Last Reviewed</label>
+        <input type="date" class="ld-date" id="ld-date-input">
+      </div>
+      <div class="ld-row">
+        <label class="ld-label" for="ld-notes-input">Team Notes</label>
+        <textarea class="ld-notes" id="ld-notes-input" placeholder="Add context, updates, owner, next steps…"></textarea>
+      </div>
+      <div class="ld-save-row">
+        <button class="ld-save-btn" onclick="saveMilestone()">Save</button>
+        <span class="ld-saved-msg" id="ld-saved-msg">✓ Saved</span>
+      </div>
+    </div>
+    <div class="d-section"><div class="d-section-label">What happens at this milestone</div><div class="d-section-text" id="d-what"></div></div>
+    <div class="d-section"><div class="d-section-label">Pain points &amp; barriers</div><div class="d-section-text" id="d-pain"></div></div>
+    <div class="d-section"><div class="d-section-label">Equity gaps -- Selena, Tou, Adrian &amp; peers</div><div class="d-section-text" id="d-equity"></div></div>
+  </div>
+</div>
+
+<script>
+function showStage(n){
+  document.querySelectorAll('.stage-panel').forEach(p=>p.classList.remove('visible'));
+  document.querySelectorAll('.stage-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('stage-'+n).classList.add('visible');
+  document.getElementById('btn-'+n).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+const LS_KEY='fresno_sjm_milestones';
+function loadAll(){ try{return JSON.parse(localStorage.getItem(LS_KEY)||'{}')}catch(e){return{}} }
+function saveAll(d){ try{localStorage.setItem(LS_KEY,JSON.stringify(d))}catch(e){} }
+let currentId=null, currentStatus=null;
+function setStatus(val){
+  currentStatus=val;
+  ['active','progress','addressed','monitoring'].forEach(v=>{
+    document.getElementById('sb-'+v).className='ld-status-btn'+(v===val?' sel-'+v:'');
+  });
+}
+function saveMilestone(){
+  if(!currentId)return;
+  const all=loadAll();
+  all[currentId]={status:currentStatus,reviewed:document.getElementById('ld-date-input').value,notes:document.getElementById('ld-notes-input').value.trim()};
+  saveAll(all);
+  updateCellBadge(currentId,currentStatus);
+  const msg=document.getElementById('ld-saved-msg');
+  msg.classList.add('show');
+  setTimeout(()=>msg.classList.remove('show'),2000);
+}
+function loadMilestone(id){
+  const all=loadAll(), saved=all[id]||{};
+  currentStatus=saved.status||null;
+  ['active','progress','addressed','monitoring'].forEach(v=>{
+    document.getElementById('sb-'+v).className='ld-status-btn'+(v===currentStatus?' sel-'+v:'');
+  });
+  document.getElementById('ld-date-input').value=saved.reviewed||'';
+  document.getElementById('ld-notes-input').value=saved.notes||'';
+}
+const SL={active:'Active Gap',progress:'In Progress',addressed:'Addressed',monitoring:'Monitoring'};
+const SC={active:'sb-active',progress:'sb-progress',addressed:'sb-addressed',monitoring:'sb-monitoring'};
+function updateCellBadge(id,status){
+  document.querySelectorAll('[onclick="openDetail(\''+id+'\')"]').forEach(cell=>{
+    let b=cell.querySelector('.cell-status-badge');
+    if(!status){if(b)b.remove();return;}
+    if(!b){b=document.createElement('div');b.className='cell-status-badge';cell.appendChild(b);}
+    b.className='cell-status-badge '+(SC[status]||'');
+    b.textContent=SL[status]||status;
+  });
+}
+function initBadges(){
+  const all=loadAll();
+  Object.entries(all).forEach(([id,data])=>{if(data.status)updateCellBadge(id,data.status);});
+}
+function exportStatus(){
+  const all=loadAll();
+  const lines=['California State University, Fresno -- Student Journey Map','Status Export -- '+new Date().toLocaleDateString(),''];
+  const entries=Object.entries(all).filter(([,v])=>v.status||v.notes||v.reviewed);
+  if(!entries.length){alert('No milestone tracking data saved yet.');return;}
+  entries.forEach(([id,v])=>{
+    const d=D[id];
+    lines.push('─────────────────────────────────');
+    lines.push('Milestone: '+(d?d.ey+' -- '+d.ti:id));
+    if(v.status)lines.push('Status: '+(SL[v.status]||v.status));
+    if(v.reviewed)lines.push('Last Reviewed: '+v.reviewed);
+    if(v.notes)lines.push('Notes: '+v.notes);
+    lines.push('');
+  });
+  const blob=new Blob([lines.join('\n')],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='Fresno_State_Journey_Map_Status_'+new Date().toISOString().slice(0,10)+'.txt';
+  a.click();
+}
+const T={gap:'<span class="tag tag-gap">Equity gap</span>',pain:'<span class="tag tag-pain">Pain point / barrier</span>',open:'<span class="tag tag-open">Still open</span>',ok:'<span class="tag tag-ok">Answered / confirmed</span>'};
+
+const D={
+s1_m1_prelim:{ey:"Stage 1 · Preliminary Milestones",ti:"Admission Decision & Enrollment Commitment",tg:["gap","pain"],wh:"Students accept their offer of admission by the May 1 deadline and connect to registration for Dog Days orientation. The exact process and timing differ depending on whether a student is a first-time freshman, transfer, or adult learner. Recruitment approaches vary by school district, including webinars for students and families who opt in. Fresno State begins sending information organized by college of study to build an early sense of connection, and runs Bulldog Bound to build staff awareness and maximize admitted-student participation in early engagement activities.",pa:"High school seniors face significant information overload during senior year on top of the admission decision itself. Transfer students face a complex transcript release process and often do not understand the steps required. Communication clutter, too many messages from too many departments, causes students to tune out before they have even committed. There is no coordinated system for sharing and coordinating events across Fresno State departments, so departments show up inconsistently at the moments when students are deciding.",eq:"Students whose families do not speak English receive inadequate language-accessible communication at the exact moment families are helping a student decide whether to enroll. First-generation and immigrant students are making this decision with no family blueprint for what happens next, at the same time they are being asked to activate multiple accounts and register for orientation with limited guidance."},
+s1_m2_fin:{ey:"Stage 1 · Financial Access",ti:"Financial Aid Application (FAFSA / CADAA)",tg:["gap","pain"],wh:"Students submit the FAFSA or California Dream Act Application (CADAA) by priority deadlines. Fresno State sends reminders to both personal and Fresno State email addresses and provides financial aid workshops; the Outreach team also goes into high schools to support FAFSA completion. Staff work to help students understand that FAFSA must be resubmitted every year, not completed once at admission.",pa:"Students miss emails and frequently do not understand that FAFSA is an annual requirement rather than a one-time application like admissions. The financial aid office operates 8am to 5pm only, hours that are misaligned with commuter and working students' actual availability. Students described the financial aid office itself as understaffed and difficult to reach during business hours, making it hard to get answers to even common cost-related questions.",eq:"First-generation and immigrant students navigate financial aid with no family model for how the process works, a burden compounded when a family's primary language is not English. Undocumented students and DACA recipients must use CADAA, a separate process carrying the same information gap. One student described having to drive two hours to obtain a cashier's check after both the online payment portal and in-person payment process failed, with no clear communication about fee deferment timelines despite multiple calls that resulted only in transfers between offices."},
+s1_m2_prelim:{ey:"Stage 1 · Preliminary Milestones",ti:"Activate Student Portal & Duo Authentication",tg:["gap","pain"],wh:"Students create and activate a Fresno State email account, set up Duo two-factor authentication, and gain access to the student portal for registration and financial information. Fresno State provides tech support at Dog Days and major events, sends activation instructions before Dog Days, and proactively tries to identify students who have not yet activated their accounts.",pa:"The student portal is outdated and cumbersome and does not meet current student expectations; conversations about enhancing it have occurred but no changes have been made. Duo lockouts prevent students from completing next steps, and setup is described as specifically unintuitive: students commonly enter the wrong phone number and do not know how to correct it. Students cannot accept their admission offer without their Fresno State email, creating a circular dependency for students who have not yet activated it.",eq:"Students who do not create their Fresno State email receive no institutional communication at all, since Financial Aid and other offices do not email students at their personal address. This silently and disproportionately affects first-generation students who are least likely to know that a second, mandatory email account exists alongside the one they already use."},
+s1_m3_prelim:{ey:"Stage 1 · Preliminary Milestones",ti:"Preview Days (Admitted Student Events)",tg:["gap"],wh:"Admitted students and families attend Preview Days, which include a campus tour, an overview of campus resources, and a scavenger hunt of campus services. Fresno State uses Preview Days to reintroduce resources across campus and remind students of upcoming Dog Days.",pa:"Language barriers exist for non-English-speaking parents attending Preview Days, limiting how much a family can actually absorb from the event. There is no institutional tracking of whether attending Preview Days affects a student's eventual yield decision or sense of preparedness.",eq:"Low-income families face transportation and childcare barriers to attending preview events at all, meaning the students most likely to benefit from an early campus connection are also the least likely to be able to attend."},
+s1_m4_adv:{ey:"Stage 1 · Advising & Planning",ti:"Dog Days Orientation, Advising & Block Scheduling",tg:["gap","pain"],wh:"Students register and pay for Dog Days orientation, attend in person (a virtual makeup option exists), and attend an advising session within Dog Days where they declare a major or gather information to declare one before the end of their first semester. Fresno State block-schedules first-year students into initial courses, including the Golden 4 (English, Communication, Quantitative Reasoning), and conducts an informal change-of-major process within Dog Days, referring students to the appropriate advising center to confirm they meet impaction and GPA requirements for a new major. Transfer students attend a separate Dog Days session.",pa:"Advisors describe students falling asleep by the time they reach an advising appointment, worn down by a day of information overload; many are also stressed about getting into classes, which pulls attention away from anything else being discussed. Average advisor caseloads run near 800 students, making meaningful one-on-one advising structurally difficult during a single-day event. Campus closes at 3:30pm, limiting time for informal connection, and the change-of-major process after Dog Days is confusing and burdensome; students are sometimes turned away from advising centers regarding a change of major during busy periods. A student who does not change majors at Dog Days may spend an entire first semester in misaligned courses. Additional welcome events after Dog Days (\"Dog Days Part II\") have been described internally as hugely unsuccessful, and roughly 7 percent of students who attend Dog Days still do not show up for the fall semester.",eq:"Dual enrollment students, roughly 30 percent of incoming students, are block-scheduled into courses they may not need, creating early frustration and mis-sequencing that a single orientation day cannot resolve. Students admitted to an alternate major to gain entry, then wanting to switch, face significant barriers if they do not meet impacted-major requirements, a dynamic advisors describe candidly as setting some students up for failure rather than success."},
+s1_m5_belong:{ey:"Stage 1 · Belonging & Engagement",ti:"Summer Gap Communication & Housing Move-In",tg:["gap","pain"],wh:"Between Dog Days and the first day of class, students check email and the student portal, monitor their financial aid to-do list and deadlines, and prepare for move-in if they are living on campus (about 28 percent of first-time freshmen). Financial Aid emails students about outstanding to-do items, and the Registrar's Office emails class schedules about one week before classes start. Multiple departments send information through different systems, including Bulldog Connect, the student portal, Canvas, and Title IX systems.",pa:"This summer gap is described as the moment admitted students may most intensely focus on coming to Fresno State, yet there is no official welcome or structured activity after Dog Days and before the first day of class, so that momentum has nowhere to go. One admitted student reportedly received over 125 emails before their first day, a volume that causes students to tune out entirely; the student portal is not a true centralized information source, and staff themselves are not always sure where information should be routed. Students often do not request or plan housing until after Dog Days, which may already be too late for their preferred placement, and housing costs and processes are not well communicated during orientation.",eq:"Students without stable family housing to return to face housing insecurity that begins with not establishing healthy housing habits this early in their enrollment, a risk that compounds by the time they eventually graduate. Financial Aid does not email students at their personal address, only their Fresno State address, which many students have still not checked by this point."},
+s1_m6_belong:{ey:"Stage 1 · Belonging & Engagement",ti:"First Day & First Semester Transition",tg:["gap","pain"],wh:"Students find their classes, review syllabi, access course materials, and learn Canvas, often while navigating campus parking, building access, and ID card systems for the first time. Fresno State runs Welcome Week and I Love Fresno State Week programming and makes Ambassadors available on campus to help students navigate.",pa:"Students frequently do not understand higher-education expectations, grading, or the shift from the hand-holding of high school to college independence; advisors describe students believing their registration appointment meant an advisor would build their schedule for them. First day and first week parking is a significant, well-documented problem, and building ID access is challenging for new students. Fee payment deadlines are often not known until they create a problem. Welcome Week programming is structured for a residential campus and may not accommodate commuter students who cannot attend multi-day events.",eq:"Roughly 250 students who enroll and register never show up for the first day of class, consuming course seats and financial aid resources that could otherwise reach engaged students. Students are navigating the physical and digital campus at the same time, a double cognitive load that falls hardest on first-generation students without a family member who has been through the process before."},
+s2_m1_fin:{ey:"Stage 2 · Financial Access",ti:"Review Student Holds & Resolve",tg:["gap","pain"],wh:"After the census date, students are expected to monitor the Student Center for financial, immunization, and other holds and clear any balance before it reaches the $900 registration hold threshold that blocks future enrollment.",pa:"Students frequently do not understand holds and do not proactively monitor the Student Center. Staff describe threats to drop students for non-payment as an empty threat in practice, which does not actually happen, but which sets students up for a longer-term balance problem instead of an immediate consequence they might respond to.",eq:"Students who are already disengaged or overwhelmed, often the same students facing the greatest financial precarity, are the least likely to proactively check for and resolve a hold before it blocks their next registration."},
+s2_m2_acad:{ey:"Stage 2 · Academic Foundation",ti:"Develop Academic Strengths & Complete Gateway English/Math",tg:["gap","pain"],wh:"Students are expected to apply academic self-management skills such as reading a syllabus and understanding grading, seek academic help when needed, and enroll in and pass gateway English and Math courses as part of the Golden 4 requirement.",pa:"There is no true campus-wide early alert system, and application of the informal alerts that do exist is inconsistent across departments. Course performance in gateway courses has cascading effects: students who fail face compounding delays, and students who need support the most are often not the ones using it. Faculty and staff describe students as existing in a shadow system, not knowing what they don't know about navigating college.",eq:"The highest stop-out rate on campus occurs among first-time freshmen who have not completed the Golden 4, making this the single most critical intervention window in the entire journey. Dual enrollment students face a related but distinct equity gap: roughly 30 percent arrive with dual enrollment credit, but a student who took Statistics in high school may not realize it only satisfies Algebra, not their full Math GE requirement, and STEM students in particular may not realize their Math GE is incomplete until much later."},
+s2_m2_adv:{ey:"Stage 2 · Advising & Planning",ti:"Meet with Advisor & Understand Course Sequencing",tg:["gap","pain"],wh:"Students schedule and attend an advising appointment to review course sequencing and their Degree Progress Report (DPR).",pa:"Getting an advising appointment is difficult given caseloads near 800 students per advisor, and students describe not understanding course sequencing even after attending Dog Days. The DPR itself lacks a clear visual progress bar; students want to see a simple picture of how close they are to graduation, but the current display does not provide it, and a more accurate DPR system is in development but not expected until 2027.",eq:"Students who need the most help are the least likely to secure an advising appointment quickly, meaning the highest-risk students disengage from advising exactly when they need it most. First-generation students face this compounded by not knowing what an advisor does, where advising offices are located, since each college names its office differently, or when they are supposed to go."},
+s2_m3_fin:{ey:"Stage 2 · Financial Access",ti:"Financial Aid Renewal & SAP Management",tg:["gap","pain"],wh:"A student's first semester at Fresno State is also when the FAFSA, CADAA, and scholarship application opens for the following academic year (October 1), with a priority filing deadline of March 2, during their second semester. Students must also stay enrolled in required courses to maintain Satisfactory Academic Progress (SAP) and understand how enrollment affects refunds and grant eligibility.",pa:"Students commonly believe financial aid is a one-and-done process like admissions and do not realize they must reapply every single year, a misunderstanding that surfaces for the first time during an already-overwhelming first semester. Students are confused about refunds, SAP, and grant eligibility broadly. Students with GPA- or pace-related SAP issues receive a warning semester before losing eligibility, but students with MAX-time SAP issues do not receive that same warning semester, though staff try to send an informal, unofficial warning email ahead of time.",eq:"Students who are financially independent in practice but still classified as dependent for financial aid purposes face a structural mismatch that a form cannot resolve. Focus groups also identified Black and Asian students as particularly at risk of falling below full-time enrollment status, warranting more targeted outreach than the current system provides."},
+s2_m3_adv:{ey:"Stage 2 · Advising & Planning",ti:"Maintain Full-Time Status",tg:["gap"],wh:"Students are expected to understand the implications of dropping below 12 units, or below full-time status generally, both for financial aid eligibility and for staying on pace to graduate on time.",pa:"Block scheduling in Year 1 is described by advisors as \"a blessing and a curse\": it protects first-year enrollment, but students in block schedules never have to practice independent registration, leaving them unprepared for the moment block scheduling ends.",eq:"Students who are working significant outside hours to support themselves or their families face a harder tradeoff between full-time enrollment and financial survival than students without those obligations."},
+s2_m4_belong:{ey:"Stage 2 · Belonging & Engagement",ti:"Develop Sense of Belonging & Engage with Campus",tg:["gap"],wh:"Students attend Welcome Week events, obtain a student ID card, connect to services, and begin exploring clubs, organizations, and other forms of campus involvement.",pa:"Students are frequently bounced between offices when seeking assistance; there are too many hand-offs and students often do not follow through on a referral once it is made, pointing to a need for a single point of contact model rather than repeated informal handoffs.",eq:"Commuter students have no residential anchor for ongoing connection, a gap that compounds because block scheduling creates a built-in cohort and sense of belonging in Year 1 that ends abruptly when block scheduling itself ends in Year 2."},
+s2_m4_mh:{ey:"Stage 2 · (Mental) Health & Basic Needs",ti:"Access Basic Needs & Mental Health Supports",tg:["gap","pain"],wh:"Students access the Student Cupboard, Essential Needs casework, Parent Scholars support, and counseling and wellness services when needed.",pa:"Mental health, first-generation pressure, and self-advocacy issues are described as major Year 1 barriers. Multiple focus group participants described avoiding help-seeking out of shame and fear of judgment, seeing it as an absolute last resort rather than a normal part of the college experience.",eq:"Financial aid, counseling, and Essential Needs offices all operate on an 8am to 5pm schedule that is inaccessible for commuter and working students. First-generation students are described as the most reluctant to seek help, in part because admitting difficulty can feel like disappointing an entire household that sacrificed to get them to college."},
+s2_m4_career:{ey:"Stage 2 · Career & Future Self",ti:"Begin Career Planning",tg:["gap"],wh:"Students begin exploring career options, attend career workshops and career fairs when available, and start building an understanding of how their current major connects to potential career paths.",pa:"Career planning happens too late for most students; many do not meaningfully connect with career services until Year 3 or later. Career services is centralized in a single office and structurally cannot reach the majority of students without departments actively building career conversation into coursework.",eq:"Generation Alpha students arrive expecting career framing that the institution does not yet consistently provide, and first-generation students have no career conversations happening at home; if the institution does not create this conversation intentionally, it may not happen for these students at all."},
+s2_m5_adv:{ey:"Stage 2 · Advising & Planning",ti:"Register for Next Semester",tg:["gap","pain"],wh:"At the end of Year 1, students enroll in next-term courses on their own, navigating prerequisites, co-requisites, and course sequencing without the block-scheduling support they had in their first semester.",pa:"Limited class availability and rotating course offerings can leave students unable to progress on schedule. Students transitioning out of block scheduling are described as lost during this period; at one registration tabling event, sophomores were reported as the single largest group seeking help, confused about how to choose classes and feeling abandoned after a year of close institutional guidance.",eq:"Students exiting block scheduling for the first time have never independently registered before; this first solo registration attempt disproportionately disadvantages first-generation students who have no one at home who has done this either."},
+s3_m1_fin:{ey:"Stage 3 · Financial Access",ti:"Navigate Financial Holds & Payments",tg:["gap","pain"],wh:"Students continue to monitor the Student Center for holds and pay outstanding balances, while also understanding how financial aid renewal and SAP standing affect their continued eligibility.",pa:"Students remain surprised by financial holds and unsure how to clear them, and hold resolution requires student initiative that disengaged students are the least likely to take.",eq:"Students who stopped engaging after Year 1 challenges are at the highest risk of accumulating additional holds. Low-income students may simply stop enrolling altogether rather than navigate a complex hold-resolution process, quietly leaving the institution rather than asking for help."},
+s3_m2_acad:{ey:"Stage 3 · Academic Foundation",ti:"Get Out of Pre-Major / Declare Major",tg:["gap","pain"],wh:"Students complete the remaining requirements to exit pre-major status and meet with an advisor to discuss major options and a declared pathway forward.",pa:"Students often get stuck in pre-major status with no clear timeline or intervention point, and those who chose or were placed into an alternate major face an unclear pathway back to their preferred major.",eq:"First-generation students are less likely to proactively seek out the major declaration process on their own, and students who failed gateway courses in Year 1 may find themselves unable to access their intended major at all, effectively stopping out at this transition point even if they remain enrolled."},
+s3_m3_acad:{ey:"Stage 3 · Academic Foundation",ti:"Course Sequencing, Academic Progress & the DPR",tg:["gap"],wh:"Students enroll in the correct courses in the correct sequence using their major roadmap, work toward the unit threshold for junior standing, and use the Degree Progress Report to monitor remaining graduation requirements, ideally with an advisor during a scheduled appointment.",pa:"Curriculum is described as complicated, and roadmaps are inconsistent, some thorough, some with real gaps, depending on department. Students fall behind without realizing it because there is no proactive early-warning mechanism, and course availability problems can prevent students from taking required courses on schedule even when they are trying to stay on track. The DPR itself is frequently inaccurate, with outdated course listings that confuse students about what still counts toward their degree; a more reliable version is not expected until 2027.",eq:"Sophomore students are described as the most structurally underserved population at a predictable drop-off point, feeling abandoned once block enrollment ends. A team of fewer than 15 coaches is responsible for supporting every student on campus who is on academic notice or warning, a structural constraint that limits what any individual coach can accomplish. Students on academic warning are also the ones most likely to miss appointments and go non-responsive precisely when they need the most support, and misadvising at this stage carries real costs: additional semesters of tuition and, in at least one documented case, a course listed on a DPR that had not actually been offered in five years."},
+s3_m3_adv:{ey:"Stage 3 · Advising & Planning",ti:"Continue Advising Engagement",tg:["gap"],wh:"Students schedule and attend advising appointments as they continue registering independently, now a full year removed from the structured support of block scheduling.",pa:"Students who need support most are often unable to secure timely appointments given advisor caseloads. The removal of the advising hold eliminated a key structural touchpoint that used to reliably bring students in for a conversation, even if imperfect.",eq:"Students transitioning out of block enrollment in Year 2 never registered independently before; their first solo registration attempt happened the prior year with little preparation, and by Year 2 many still have not built a working relationship with an advisor."},
+s3_m4_belong:{ey:"Stage 3 · Belonging & Engagement",ti:"Maintain Belonging & Engagement Through Year 2",tg:["gap"],wh:"Students continue to participate in clubs, organizations, and campus activities, and build relationships with faculty and peers now that the built-in structure of block enrollment no longer provides an automatic cohort.",pa:"Sophomore students are described as the largest group present at a registration tabling event, confused about how to choose classes, unaware advising even existed, and feeling that after a year of close guidance they had been left on their own. Block enrollment closely mirrored the close, embedded support of high school, making this transition especially jarring for students who have never had to exercise academic self-direction.",eq:"Commuter students, working students, and students with caregiving responsibilities face compounding scheduling barriers to engagement that do not diminish over time; if anything, they intensify as academic demands increase in Year 2."},
+s3_m4_mh:{ey:"Stage 3 · (Mental) Health & Basic Needs",ti:"Manage Personal & Mental Health Challenges",tg:["gap"],wh:"Students seek counseling and wellness support and, where possible, self-identify challenges to faculty, advisors, or staff for referral to appropriate services.",pa:"Mental health, first-generation pressure, and self-advocacy issues compound in Year 2 as the structural support of block enrollment disappears. Help-seeking must be learned, and many students arrive without it already in place.",eq:"Financial, housing, and mental health barriers peak in Years 2 through 3, yet most institutional support and outreach efforts remain focused on first-year students. First-generation students in particular often feel they cannot disappoint their household by admitting a struggle, even a serious one."},
+s3_m4_career:{ey:"Stage 3 · Career & Future Self",ti:"Deepen Career Exploration",tg:["gap","pain"],wh:"Students attend career workshops, meet with a career counselor, and begin building a resume while exploring internship and experiential learning options.",pa:"Career planning remains centralized in a single office and does not reach the majority of students at this stage.",eq:"Nearly 60 percent of the student body is engaged in unpaid internships, a critical equity barrier for low-income students who cannot afford to work without pay, and career planning remaining optional means students already overwhelmed by academic and financial pressure are the least likely to engage with it on their own."},
+s4_m1_fin:{ey:"Stage 4 · Financial Access",ti:"Navigate Financial Holds & Payments -- Year 3",tg:["gap","pain"],wh:"Students pay outstanding balances and monitor their financial aid and SAP status heading into upper-division coursework.",pa:"Students in Year 3 who have accumulated balances from Year 1 or 2 face compounded debt, and their ability to continue is increasingly at risk. Small financial barriers in Years 3 and 4 have outsized consequences: a student one class away from graduating who is blocked by a prior balance is now in a genuine crisis.",eq:"Students who stopped out at the sophomore transition and later returned may carry unresolved holds from their prior enrollment, compounding the barrier to finishing on the timeline they hoped for."},
+s4_m2_acad:{ey:"Stage 4 · Academic Foundation",ti:"Upper-Division Coursework, Graduation Tracking & Transfer Integration",tg:["gap","pain"],wh:"Continuing students follow their major roadmap and work to complete general education requirements by the end of Year 3, while transfer students entering at this stage complete an orientation process similar to Year 1 students, with some tailored content, and navigate credit evaluation and course mapping for program completion.",pa:"Students report being unsure whether they are on track, since DPR confusion persists; every course section is described as full in every department, and this is named as a problem across the institution, not one program. Transfer students face significant advising challenges around credit recognition and course equivalency, and advisors do not always know how to correctly process the waivers and permissions transfer credit requires, in some documented cases leading students to retake courses they had already completed elsewhere.",eq:"If a student does not take the right courses this year, they will not graduate on time, and that consequence compounds annually rather than resetting. University Division of Transition (UDT) students, and Project Rebound students specifically, are disproportionately affected by course access; 100 percent of UDT students are expected to be delayed toward graduation due to course access issues alone."},
+s4_m2_adv:{ey:"Stage 4 · Advising & Planning",ti:"Complete Degree Progress Reviews",tg:["gap","pain"],wh:"Students meet with an advisor to review their DPR, confirm remaining requirements, and plan out their final two years of coursework.",pa:"Inconsistencies exist in advising access and quality of feedback across departments, and technology makes it difficult for advisors to run academic audits efficiently, limiting how proactive they can be.",eq:"Students who discover missing requirements at this stage still have time to recover, but only with proactive intervention; without it, a Year 3 gap becomes a Year 5 problem."},
+s4_m3_belong:{ey:"Stage 4 · Belonging & Engagement",ti:"Belonging & Engagement -- Step into Leadership",tg:["ok"],wh:"Students participate in extracurriculars, clubs, and campus initiatives, often stepping into leadership roles, and continue building sustained connections with faculty, staff, and peers.",pa:"Support and outreach for Years 3 and 4 students is significantly less robust than for Year 1 students, even as financial, housing, and mental health barriers peak for upper-division students.",eq:"Students with caregiving responsibilities, work obligations, and commuter students face compounding barriers to engagement that have not diminished over three years, and transfer students entering at Year 3 have limited remaining time to build campus-based belonging before graduation."},
+s4_m3_mh:{ey:"Stage 4 · (Mental) Health & Basic Needs",ti:"Balance Academic, Work & Life -- Year 3",tg:["gap"],wh:"Students manage responsibilities across coursework, employment, and family obligations, with campus resources still technically available but far less visible than they were in Year 1.",pa:"Students in Year 3 face financial, housing, and mental health barriers, yet most support and outreach continues to focus on first- and second-year students.",eq:"Stop-out risk in Year 3 is often driven by life pressures, family, financial, health, rather than by academic performance alone, meaning academic metrics can miss the students most at risk of leaving."},
+s4_m4_career:{ey:"Stage 4 · Career & Future Self",ti:"Prepare Resume & Career Skills / Secure Internship",tg:["gap","pain"],wh:"Students attend career fairs, meet with a career counselor for resume review and interview practice, and apply for internships or other experiential learning opportunities.",pa:"Career preparation remains optional and comes late for most students. Internships remain difficult to secure, with nearly 60 percent of the student body engaged in unpaid internships.",eq:"Students who cannot afford to work without pay are structurally excluded from the majority of available internship opportunities, arriving at their final year without the experiential credentials that unpaid internships often provide to peers who can afford them."},
+s5_m1_fin:{ey:"Stage 5 · Financial Access",ti:"Resolve Final Financial Barriers",tg:["gap","pain"],wh:"Students pay outstanding balances and apply for completion grants if available, closing out their financial obligations before their final semester.",pa:"Small financial barriers prevent completion outright; a student one class away from graduating who is blocked by a small balance is in genuine crisis. Students often do not understand their loan repayment obligations at the point of graduation.",eq:"First-generation students who are the first in their family to take on student loan debt may have the least context of anyone for understanding their repayment options, arriving at exit counseling with the least preparation and the highest stakes."},
+s5_m2_acad:{ey:"Stage 5 · Academic Foundation",ti:"Degree Audit, Final Courses & Graduation Application",tg:["gap","pain"],wh:"Students review their DPR and confirm all graduation requirements are met, meet with an advisor for a formal degree audit, enroll in and complete their final required courses, and submit their graduation application through the student portal.",pa:"Students frequently do not know what they still need to graduate until they check the DPR, and the DPR is frequently inaccurate; one student discovered in their junior year that a course listed on their DPR for their catalog year had not actually been offered in five years. Students apply for graduation but are not always graduation-ready, since missing requirements are often discovered at the point of application rather than tracked proactively. Courses that are not offered or are already full create the most painful outcome at this stage: a student one class from graduating who cannot get in and must wait a full additional semester. Deans and chairs have the authority to make course substitutions to resolve exactly this kind of gap, but there is no consistency in when or how often that authority is actually used.",eq:"The institution does not systematically track near-completers, students close to graduating but facing a small, resolvable barrier, so these students are effectively invisible to the system until they self-report a problem. Students whose catalog year lists courses that have not been offered in years face an inequitable burden through no fault of their own, and students who experienced misadvising earlier in their journey face real costs here: additional semesters of tuition and potential loss of aid eligibility."},
+s5_m3_career:{ey:"Stage 5 · Career & Future Self",ti:"Experiential Learning & Career Preparation",tg:["gap","pain"],wh:"Students complete an internship or other experiential learning requirement where applicable, and separately apply for jobs, graduate programs, or service opportunities, meeting with the Career Development Center for final review and application support.",pa:"Students graduate without workforce or internship experience more often than the institution would like; nearly 60 percent of the student body engaged in unpaid internships is an equity barrier that persists all the way to graduation. Students tend to seek career guidance late and have difficulty connecting their own skills and abilities to specific career opportunities, often reporting they feel underemployed after graduation.",eq:"Students who could not afford unpaid internships in Years 1 through 3 reach graduation without the same competitive experiential credentials as peers who could work without pay, and students who never connected with career services earlier in their journey arrive at graduation significantly behind in readiness, a gap that first-generation students feel most acutely given they also often lack a professional network to fall back on."},
+s5_m4_career:{ey:"Stage 5 · Career & Future Self",ti:"Transition to Career / Workforce",tg:["gap"],wh:"Students execute their job search or finalize graduate school plans, and separately plan their post-graduation transition for housing, healthcare, and personal finances as they enter the workforce or continue their education.",pa:"Students are often uncertain about how to successfully execute this transition, and many report feeling underemployed, in part because their skills are not clearly articulated to employers.",eq:"Once students graduate and lose access to their Fresno State email, maintaining contact with them for alumni services and continued support becomes difficult, cutting off a relationship the institution spent four years building right when a student may still need it most."},
+s5_m4_belong:{ey:"Stage 5 · Belonging & Engagement",ti:"Graduation Clearance & Commencement",tg:["ok"],wh:"Students complete final clearance requirements and attend commencement, including identity-affirming ceremonies organized around cultural or program-specific communities.",pa:"Because the institution does not systematically track near-completers, students close to graduating with a small, unresolved barrier remain invisible right up through this final stage. Surprise graduation costs, fees, regalia, and related expenses disproportionately affect low-income students who did not anticipate them.",eq:"Students who are housing insecure or who had a difficult final semester may not participate in commencement even after they have completed every requirement, meaning the institution's final, most visible celebration of student success can quietly exclude the students who worked hardest to get there."}
+};
+function openDetail(id){
+  const d=D[id]; if(!d) return;
+  currentId=id;
+  document.getElementById('d-eyebrow').textContent=d.ey;
+  document.getElementById('d-title').textContent=d.ti;
+  document.getElementById('d-tags').innerHTML=d.tg.map(k=>T[k]||'').join(' ');
+  document.getElementById('d-what').textContent=d.wh;
+  document.getElementById('d-pain').textContent=d.pa;
+  document.getElementById('d-equity').textContent=d.eq;
+  loadMilestone(id);
+  document.getElementById('ld-saved-msg').classList.remove('show');
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
+document.addEventListener('DOMContentLoaded',initBadges);
+</script>
+</body>
+</html>
